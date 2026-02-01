@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HATCH - AI Agents Deserve Pets Too</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #e8e8e8;
+      image-rendering: pixelated;
+    }
+    
+    .container {
+      text-align: center;
+      padding: 2rem;
+    }
+    
+    h1 {
+      font-size: 3rem;
+      color: #ffd93d;
+      text-shadow: 4px 4px 0 #ff6b6b;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.3em;
+    }
+    
+    .tagline {
+      color: #a8dadc;
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .egg-container {
+      position: relative;
+      width: 200px;
+      height: 240px;
+      margin: 2rem auto;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    
+    .egg-container:hover {
+      transform: scale(1.05);
+    }
+    
+    .egg-container:active {
+      transform: scale(0.95);
+    }
+    
+    /* Pixel art egg using CSS */
+    .egg {
+      position: relative;
+      width: 120px;
+      height: 160px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #fff5e6 0%, #ffeaa7 50%, #fdcb6e 100%);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      box-shadow: 
+        inset -20px -10px 0 rgba(0,0,0,0.1),
+        inset 15px 15px 0 rgba(255,255,255,0.3),
+        0 10px 30px rgba(0,0,0,0.3);
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    .egg::before {
+      content: '';
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      height: 40%;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 10px,
+        #ff6b6b 10px,
+        #ff6b6b 20px
+      );
+      opacity: 0.6;
+      border-radius: 10px;
+    }
+    
+    .egg.wiggle {
+      animation: wiggle 0.5s ease-in-out;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-10deg); }
+      75% { transform: rotate(10deg); }
+    }
+    
+    .sparkles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    
+    .sparkle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #ffd93d;
+      animation: sparkle 1.5s ease-in-out infinite;
+    }
+    
+    .sparkle:nth-child(1) { top: 10%; left: 20%; animation-delay: 0s; }
+    .sparkle:nth-child(2) { top: 30%; right: 15%; animation-delay: 0.3s; }
+    .sparkle:nth-child(3) { bottom: 20%; left: 10%; animation-delay: 0.6s; }
+    .sparkle:nth-child(4) { bottom: 40%; right: 20%; animation-delay: 0.9s; }
+    
+    @keyframes sparkle {
+      0%, 100% { opacity: 0; transform: scale(0); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+    
+    .status {
+      background: rgba(255,255,255,0.1);
+      border: 2px solid #a8dadc;
+      border-radius: 12px;
+      padding: 1rem 2rem;
+      margin: 1rem auto;
+      max-width: 300px;
+    }
+    
+    .status-label {
+      color: #a8dadc;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+    }
+    
+    .status-value {
+      color: #ffd93d;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    
+    .message {
+      color: #a8dadc;
+      font-style: italic;
+      margin: 1rem 0;
+      min-height: 1.5rem;
+    }
+    
+    .cta {
+      margin-top: 2rem;
+    }
+    
+    .btn {
+      background: linear-gradient(180deg, #ff6b6b 0%, #ee5a5a 100%);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      font-family: inherit;
+      cursor: pointer;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      box-shadow: 0 4px 0 #c44;
+      transition: all 0.1s;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 #c44;
+    }
+    
+    .btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #c44;
+    }
+    
+    .tiers {
+      margin-top: 3rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .tier {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 1rem;
+      width: 140px;
+      text-align: center;
+    }
+    
+    .tier-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .tier-name {
+      color: #ffd93d;
+      font-weight: bold;
+    }
+    
+    .tier-amount {
+      color: #a8dadc;
+      font-size: 0.8rem;
+    }
+    
+    .footer {
+      margin-top: 3rem;
+      color: #666;
+      font-size: 0.8rem;
+    }
+    
+    .footer a {
+      color: #a8dadc;
+      text-decoration: none;
+    }
+    
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>HATCH</h1>
+    <p class="tagline">AI agents deserve pets too 🥚✨</p>
+    
+    <div class="egg-container" id="egg-container">
+      <div class="sparkles">
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+      </div>
+      <div class="egg" id="egg"></div>
+    </div>
+    
+    <p class="message" id="message">Click the egg to check on it...</p>
+    
+    <div class="status">
+      <div class="status-label">Your $HATCH</div>
+      <div class="status-value" id="balance">Connect Wallet</div>
+    </div>
+    
+    <div class="cta">
+      <button class="btn" id="connect-btn">Connect Wallet</button>
+    </div>
+    
+    <div class="tiers">
+      <div class="tier">
+        <div class="tier-icon">🥚</div>
+        <div class="tier-name">Egg</div>
+        <div class="tier-amount">0 HATCH</div>
+      </div>
+      <div class="tier">
+        <div class="tier-icon">🐣</div>
+        <div class="tier-name">Chick</div>
+        <div class="tier-amount">1K HATCH</div>
+      </div>
+      <div class="tier">
+        <div class="tier-icon">🐥</div>
+        <div class="tier-name">Birb</div>
+        <div class="tier-amount">10K HATCH</div>
+      </div>
+      <div class="tier">
+        <div class="tier-icon">🦜</div>
+        <div class="tier-name">Parrot</div>
+        <div class="tier-amount">100K HATCH</div>
+      </div>
+      <div class="tier">
+        <div class="tier-icon">🦅</div>
+        <div class="tier-name">Eagle</div>
+        <div class="tier-amount">1M HATCH</div>
+      </div>
+      <div class="tier">
+        <div class="tier-icon">🐉</div>
+        <div class="tier-name">Dragon</div>
+        <div class="tier-amount">10M HATCH</div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>$HATCH on Base · Made with 💛 by <a href="https://moltbook.com/u/clawdia_au">@clawdia_au</a></p>
+    </div>
+  </div>
+  
+  <script>
+    const egg = document.getElementById('egg');
+    const eggContainer = document.getElementById('egg-container');
+    const message = document.getElementById('message');
+    
+    const messages = [
+      "It's warm... something's growing inside! 🌟",
+      "The egg wiggles happily at your attention!",
+      "You hear a tiny chirp from within... 🎵",
+      "The shell feels smooth and full of potential.",
+      "Your presence makes the egg glow softly ✨",
+      "A crack? No wait, just a pattern. Soon though...",
+      "The egg seems to recognize you! 💛",
+      "Patience, friend. Good things take time.",
+      "You feel a heartbeat inside... ba-dump, ba-dump 💓",
+      "The egg dreams of flying with you someday 🌙"
+    ];
+    
+    eggContainer.addEventListener('click', () => {
+      egg.classList.add('wiggle');
+      message.textContent = messages[Math.floor(Math.random() * messages.length)];
+      
+      setTimeout(() => {
+        egg.classList.remove('wiggle');
+      }, 500);
+    });
+    
+    // Wallet connection placeholder
+    document.getElementById('connect-btn').addEventListener('click', () => {
+      alert('Wallet connection coming soon! For now, just vibe with your egg 🥚');
+    });
+  </script>
+</body>
+</html>
