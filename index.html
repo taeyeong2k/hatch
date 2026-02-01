@@ -394,6 +394,38 @@
     }
     
     .footer a:hover { color: #a8dadc; }
+    
+    /* Pet Card Modal */
+    .card-section {
+      margin-top: 2rem;
+    }
+    
+    .card-modal {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: rgba(0,0,0,0.5);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .card-preview {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    
+    .card-preview canvas {
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      max-width: 100%;
+      height: auto;
+    }
+    
+    .card-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
@@ -488,6 +520,22 @@
         <div class="tier-icon">🐉</div>
         <div class="tier-name">Dragon</div>
         <div class="tier-amount">10M</div>
+      </div>
+    </div>
+    
+    <!-- Pet Card Generator -->
+    <div class="card-section" id="card-section" style="display: none;">
+      <h3 class="section-title">Your Pet Card</h3>
+      <button class="btn btn-secondary" id="generate-card-btn" style="margin-bottom: 1rem;">📸 Generate Shareable Card</button>
+      
+      <div id="card-modal" class="card-modal" style="display: none;">
+        <div class="card-preview">
+          <canvas id="pet-card" width="400" height="500"></canvas>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-secondary" id="download-card-btn">⬇️ Download</button>
+          <button class="btn btn-secondary" id="close-card-btn">✕ Close</button>
+        </div>
       </div>
     </div>
     
@@ -753,6 +801,10 @@
           message.textContent = "You don't have any $HATCH yet. Buy some to hatch a pet!";
         } else {
           message.textContent = getMessageForTier(tierIndex);
+          // Show pet card generator for connected users with balance
+          if (document.getElementById('card-section')) {
+            document.getElementById('card-section').style.display = 'block';
+          }
         }
         
         window.ethereum.on('accountsChanged', () => location.reload());
@@ -776,6 +828,141 @@
       window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
         if (accounts.length > 0) connectWallet();
       });
+    }
+    
+    // Pet Card Generator
+    // Polyfill for roundRect (older browsers)
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+        if (w < 2 * r) r = w / 2;
+        if (h < 2 * r) r = h / 2;
+        this.beginPath();
+        this.moveTo(x + r, y);
+        this.arcTo(x + w, y, x + w, y + h, r);
+        this.arcTo(x + w, y + h, x, y + h, r);
+        this.arcTo(x, y + h, x, y, r);
+        this.arcTo(x, y, x + w, y, r);
+        this.closePath();
+        return this;
+      };
+    }
+    
+    const cardSection = document.getElementById('card-section');
+    const cardModal = document.getElementById('card-modal');
+    const generateCardBtn = document.getElementById('generate-card-btn');
+    const downloadCardBtn = document.getElementById('download-card-btn');
+    const closeCardBtn = document.getElementById('close-card-btn');
+    const canvas = document.getElementById('pet-card');
+    const ctx = canvas.getContext('2d');
+    
+    function generatePetCard() {
+      const tier = TIERS[currentTier];
+      const w = canvas.width;
+      const h = canvas.height;
+      
+      // Background gradient
+      const gradient = ctx.createLinearGradient(0, 0, 0, h);
+      gradient.addColorStop(0, '#1a1a2e');
+      gradient.addColorStop(0.5, '#16213e');
+      gradient.addColorStop(1, '#0f3460');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, w, h);
+      
+      // Stars/sparkles
+      ctx.fillStyle = '#ffd93d';
+      for (let i = 0; i < 20; i++) {
+        const x = Math.random() * w;
+        const y = Math.random() * h * 0.4;
+        const size = Math.random() * 3 + 1;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Title
+      ctx.fillStyle = '#ffd93d';
+      ctx.font = 'bold 36px Courier New';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#ff6b6b';
+      ctx.shadowBlur = 10;
+      ctx.fillText('$HATCH', w/2, 50);
+      ctx.shadowBlur = 0;
+      
+      // Pet emoji (large)
+      ctx.font = '120px Arial';
+      ctx.fillText(tier.emoji, w/2, 200);
+      
+      // Tier name
+      ctx.fillStyle = '#ff6b6b';
+      ctx.font = 'bold 28px Courier New';
+      ctx.fillText(tier.name.toUpperCase(), w/2, 260);
+      
+      // Balance
+      ctx.fillStyle = '#a8dadc';
+      ctx.font = '20px Courier New';
+      ctx.fillText('Holding:', w/2, 310);
+      
+      ctx.fillStyle = '#ffd93d';
+      ctx.font = 'bold 32px Courier New';
+      ctx.fillText(formatBalance(currentBalance) + ' HATCH', w/2, 350);
+      
+      // Tier progress bar
+      const barWidth = 280;
+      const barHeight = 20;
+      const barX = (w - barWidth) / 2;
+      const barY = 380;
+      
+      // Bar background
+      ctx.fillStyle = 'rgba(255,255,255,0.1)';
+      ctx.roundRect(barX, barY, barWidth, barHeight, 10);
+      ctx.fill();
+      
+      // Bar fill (progress to next tier)
+      let progress = 1;
+      if (currentTier < TIERS.length - 1) {
+        const nextMin = TIERS[currentTier + 1].min;
+        const currMin = TIERS[currentTier].min;
+        progress = (currentBalance - currMin) / (nextMin - currMin);
+        progress = Math.max(0, Math.min(1, progress));
+      }
+      
+      ctx.fillStyle = '#ff6b6b';
+      ctx.roundRect(barX, barY, barWidth * progress, barHeight, 10);
+      ctx.fill();
+      
+      // Tier icons below bar
+      ctx.font = '18px Arial';
+      TIERS.forEach((t, i) => {
+        const x = barX + (barWidth * i) / (TIERS.length - 1);
+        ctx.fillStyle = i <= currentTier ? '#ffd93d' : '#444';
+        ctx.fillText(t.emoji, x - 9, barY + 45);
+      });
+      
+      // Footer
+      ctx.fillStyle = '#666';
+      ctx.font = '14px Courier New';
+      ctx.fillText('hatch-tau.vercel.app', w/2, h - 30);
+      ctx.fillText('@clawdia_au', w/2, h - 12);
+      
+      cardModal.style.display = 'block';
+    }
+    
+    function downloadCard() {
+      const link = document.createElement('a');
+      link.download = 'my-hatch-pet.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+    
+    generateCardBtn?.addEventListener('click', generatePetCard);
+    downloadCardBtn?.addEventListener('click', downloadCard);
+    closeCardBtn?.addEventListener('click', () => {
+      cardModal.style.display = 'none';
+    });
+    
+    // Show card section only when wallet connected
+    function showCardSection() {
+      if (cardSection) cardSection.style.display = 'block';
     }
   </script>
 </body>
