@@ -9,6 +9,7 @@
   <meta property="og:description" content="Hold $HATCH tokens, watch your egg evolve into a dragon 🐉">
   <meta property="og:image" content="https://iili.io/fQmCXRV.png">
   <meta name="twitter:card" content="summary">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥚</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -17,63 +18,92 @@
       min-height: 100vh;
       background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       font-family: 'Courier New', monospace;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
       color: #e8e8e8;
       image-rendering: pixelated;
     }
     
     .container {
       text-align: center;
-      padding: 2rem;
-      max-width: 600px;
+      padding: 2rem 1rem;
+      max-width: 700px;
+      margin: 0 auto;
     }
     
     h1 {
-      font-size: 3rem;
+      font-size: 2.5rem;
       color: #ffd93d;
       text-shadow: 4px 4px 0 #ff6b6b;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.25rem;
       letter-spacing: 0.3em;
+    }
+    
+    @media (min-width: 600px) {
+      h1 { font-size: 3rem; }
     }
     
     .tagline {
       color: #a8dadc;
-      font-size: 1.1rem;
-      margin-bottom: 2rem;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
     }
     
+    /* Market Stats Bar */
+    .market-stats {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      padding: 0.75rem 1rem;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-label {
+      font-size: 0.65rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    
+    .stat-value {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #ffd93d;
+    }
+    
+    .stat-value.positive { color: #4ecdc4; }
+    .stat-value.negative { color: #ff6b6b; }
+    .stat-value.loading { color: #666; }
+    
+    /* Pet Display */
     .pet-container {
       position: relative;
-      width: 200px;
-      height: 200px;
-      margin: 2rem auto;
+      width: 180px;
+      height: 180px;
+      margin: 1.5rem auto;
       cursor: pointer;
-      transition: transform 0.1s;
-      font-size: 100px;
+      font-size: 90px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     
-    .pet-container:hover {
-      transform: scale(1.05);
-    }
-    
-    .pet-container:active {
-      transform: scale(0.95);
-    }
+    .pet-container:hover { transform: scale(1.05); }
+    .pet-container:active { transform: scale(0.95); }
     
     .pet {
       animation: float 3s ease-in-out infinite;
       transition: all 0.5s ease;
+      user-select: none;
     }
     
-    .pet.wiggle {
-      animation: wiggle 0.5s ease-in-out;
-    }
+    .pet.wiggle { animation: wiggle 0.5s ease-in-out; }
+    .pet.hatching { animation: hatch 0.5s ease-in-out; }
     
     @keyframes float {
       0%, 100% { transform: translateY(0); }
@@ -92,10 +122,6 @@
       100% { transform: scale(1); }
     }
     
-    .pet.hatching {
-      animation: hatch 0.5s ease-in-out;
-    }
-    
     .sparkles {
       position: absolute;
       width: 100%;
@@ -105,9 +131,10 @@
     
     .sparkle {
       position: absolute;
-      width: 8px;
-      height: 8px;
+      width: 6px;
+      height: 6px;
       background: #ffd93d;
+      border-radius: 50%;
       animation: sparkle 1.5s ease-in-out infinite;
     }
     
@@ -121,53 +148,88 @@
       50% { opacity: 1; transform: scale(1); }
     }
     
-    .status {
-      background: rgba(255,255,255,0.1);
-      border: 2px solid #a8dadc;
-      border-radius: 12px;
-      padding: 1rem 2rem;
-      margin: 1rem auto;
-      max-width: 320px;
-    }
-    
-    .status-label {
-      color: #a8dadc;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.2em;
-    }
-    
-    .status-value {
-      color: #ffd93d;
-      font-size: 1.3rem;
-      font-weight: bold;
-      word-break: break-all;
-    }
-    
-    .pet-name {
-      color: #ff6b6b;
-      font-size: 1.5rem;
-      font-weight: bold;
-      margin-top: 0.5rem;
-    }
-    
     .message {
       color: #a8dadc;
       font-style: italic;
       margin: 1rem 0;
       min-height: 1.5rem;
+      font-size: 0.95rem;
     }
     
+    /* Wallet Status */
+    .wallet-status {
+      background: rgba(255,255,255,0.08);
+      border: 2px solid #a8dadc;
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      margin: 1rem auto;
+      max-width: 320px;
+    }
+    
+    .wallet-status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 0.4rem 0;
+    }
+    
+    .wallet-label {
+      color: #888;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+    
+    .wallet-value {
+      color: #ffd93d;
+      font-size: 1rem;
+      font-weight: bold;
+    }
+    
+    .pet-name-display {
+      color: #ff6b6b;
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin-top: 0.5rem;
+    }
+    
+    .wallet-address-small {
+      font-size: 0.7rem;
+      color: #666;
+      margin-top: 0.3rem;
+    }
+    
+    /* Evolution Preview */
+    .evolution-preview {
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.8rem;
+      color: #888;
+    }
+    
+    .evolution-preview .next-tier {
+      color: #ffd93d;
+    }
+    
+    .evolution-preview .needed {
+      color: #a8dadc;
+    }
+    
+    /* Buttons */
     .cta {
-      margin-top: 2rem;
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
     }
     
     .btn {
       background: linear-gradient(180deg, #ff6b6b 0%, #ee5a5a 100%);
       color: white;
       border: none;
-      padding: 1rem 2rem;
-      font-size: 1rem;
+      padding: 0.9rem 1.8rem;
+      font-size: 0.95rem;
       font-family: inherit;
       cursor: pointer;
       border-radius: 8px;
@@ -175,6 +237,8 @@
       letter-spacing: 0.1em;
       box-shadow: 0 4px 0 #c44;
       transition: all 0.1s;
+      text-decoration: none;
+      display: inline-block;
     }
     
     .btn:hover {
@@ -190,6 +254,7 @@
     .btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+      transform: none;
     }
     
     .btn.connected {
@@ -197,17 +262,12 @@
       box-shadow: 0 4px 0 #2d7a75;
     }
     
-    .btn.connected:hover {
-      box-shadow: 0 6px 0 #2d7a75;
-    }
-    
     .btn-secondary {
       background: transparent;
       border: 2px solid #a8dadc;
       color: #a8dadc;
-      padding: 0.75rem 1.5rem;
-      font-size: 0.9rem;
-      margin-top: 1rem;
+      padding: 0.7rem 1.4rem;
+      font-size: 0.85rem;
       box-shadow: none;
     }
     
@@ -217,50 +277,57 @@
       box-shadow: none;
     }
     
+    /* Tier Gallery */
+    .section-title {
+      color: #ffd93d;
+      font-size: 1.1rem;
+      margin: 2rem 0 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+    }
+    
     .tiers {
-      margin-top: 3rem;
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 0.5rem;
-      flex-wrap: wrap;
-      justify-content: center;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    
+    @media (min-width: 500px) {
+      .tiers { grid-template-columns: repeat(6, 1fr); max-width: 100%; }
     }
     
     .tier {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 8px;
-      padding: 0.75rem;
-      width: 90px;
+      padding: 0.6rem 0.4rem;
       text-align: center;
       transition: all 0.2s;
+      cursor: default;
     }
     
     .tier.active {
-      background: rgba(255, 107, 107, 0.2);
+      background: rgba(255, 107, 107, 0.15);
       border-color: #ff6b6b;
       transform: scale(1.05);
     }
     
-    .tier-icon {
-      font-size: 1.5rem;
-      margin-bottom: 0.25rem;
+    .tier.next {
+      border-color: rgba(255, 217, 61, 0.5);
+      border-style: dashed;
     }
     
-    .tier-name {
-      color: #ffd93d;
-      font-weight: bold;
-      font-size: 0.8rem;
-    }
+    .tier-icon { font-size: 1.4rem; }
+    .tier-name { color: #ffd93d; font-weight: bold; font-size: 0.7rem; margin-top: 0.2rem; }
+    .tier-amount { color: #888; font-size: 0.6rem; }
     
-    .tier-amount {
-      color: #a8dadc;
-      font-size: 0.7rem;
-    }
-    
+    /* Share & Links */
     .share-buttons {
       margin-top: 2rem;
       display: flex;
-      gap: 1rem;
+      gap: 0.75rem;
       justify-content: center;
       flex-wrap: wrap;
     }
@@ -269,76 +336,64 @@
       background: linear-gradient(180deg, #1da1f2 0%, #1991db 100%);
       color: white;
       text-decoration: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      font-size: 0.9rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
       font-weight: bold;
       transition: all 0.2s;
       box-shadow: 0 3px 0 #1577b5;
     }
     
-    .share-btn:nth-child(2) {
+    .share-btn.farcaster {
       background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
       box-shadow: 0 3px 0 #6d28d9;
     }
     
-    .share-btn:hover {
-      transform: translateY(-2px);
-    }
-    
-    .share-btn:active {
-      transform: translateY(1px);
-    }
+    .share-btn:hover { transform: translateY(-2px); }
     
     .links {
       margin-top: 1.5rem;
       display: flex;
-      gap: 1rem;
+      gap: 0.75rem;
       justify-content: center;
       flex-wrap: wrap;
     }
     
     .links a {
-      color: #a8dadc;
+      color: #888;
       text-decoration: none;
-      padding: 0.5rem 1rem;
-      border: 1px solid rgba(168, 218, 220, 0.3);
+      padding: 0.4rem 0.8rem;
+      border: 1px solid rgba(255,255,255,0.1);
       border-radius: 4px;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       transition: all 0.2s;
     }
     
     .links a:hover {
-      background: rgba(168, 218, 220, 0.1);
-      border-color: #a8dadc;
-    }
-    
-    .footer {
-      margin-top: 3rem;
-      color: #666;
-      font-size: 0.8rem;
-    }
-    
-    .footer a {
       color: #a8dadc;
-      text-decoration: none;
-    }
-    
-    .footer a:hover {
-      text-decoration: underline;
+      border-color: #a8dadc;
     }
     
     .error {
       color: #ff6b6b;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       margin-top: 1rem;
     }
     
-    .wallet-address {
+    .footer {
+      margin-top: 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      color: #555;
       font-size: 0.75rem;
-      color: #666;
-      margin-top: 0.5rem;
     }
+    
+    .footer a {
+      color: #888;
+      text-decoration: none;
+    }
+    
+    .footer a:hover { color: #a8dadc; }
   </style>
 </head>
 <body>
@@ -346,6 +401,27 @@
     <h1>HATCH</h1>
     <p class="tagline">AI agents deserve pets too 🥚✨</p>
     
+    <!-- Live Market Stats -->
+    <div class="market-stats" id="market-stats">
+      <div class="stat">
+        <div class="stat-label">Price</div>
+        <div class="stat-value loading" id="price">...</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">24h</div>
+        <div class="stat-value loading" id="change">...</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Market Cap</div>
+        <div class="stat-value loading" id="mcap">...</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Volume</div>
+        <div class="stat-value loading" id="volume">...</div>
+      </div>
+    </div>
+    
+    <!-- Pet Display -->
     <div class="pet-container" id="pet-container">
       <div class="sparkles">
         <div class="sparkle"></div>
@@ -358,19 +434,30 @@
     
     <p class="message" id="message">Click your pet to interact...</p>
     
-    <div class="status">
-      <div class="status-label">Your $HATCH</div>
-      <div class="status-value" id="balance">—</div>
-      <div class="pet-name" id="pet-name">Egg</div>
-      <div class="wallet-address" id="wallet-address"></div>
+    <!-- Wallet Status -->
+    <div class="wallet-status">
+      <div class="wallet-status-row">
+        <span class="wallet-label">Your $HATCH</span>
+        <span class="wallet-value" id="balance">—</span>
+      </div>
+      <div class="pet-name-display" id="pet-name">Egg</div>
+      <div class="wallet-address-small" id="wallet-address"></div>
+      
+      <!-- Evolution Preview -->
+      <div class="evolution-preview" id="evolution-preview" style="display: none;">
+        Next: <span class="next-tier" id="next-tier-name">Chick</span> 
+        (<span class="needed" id="tokens-needed">1,000</span> more needed)
+      </div>
     </div>
     
+    <!-- Actions -->
     <div class="cta">
       <button class="btn" id="connect-btn">Connect Wallet</button>
-      <br>
       <a href="https://clanker.world/clanker/0x6C4e4E072fE52bd862518967BBDa6eF4b3998C12" target="_blank" class="btn btn-secondary">Buy $HATCH</a>
     </div>
     
+    <!-- Tier Gallery -->
+    <h3 class="section-title">Evolution Tiers</h3>
     <div class="tiers" id="tiers">
       <div class="tier active" data-tier="0">
         <div class="tier-icon">🥚</div>
@@ -404,11 +491,13 @@
       </div>
     </div>
     
+    <!-- Share -->
     <div class="share-buttons">
       <a href="https://twitter.com/intent/tweet?text=I%20just%20hatched%20a%20pet%20on%20%24HATCH%20%F0%9F%A5%9A%F0%9F%90%A3&url=https://hatch-tau.vercel.app" target="_blank" class="share-btn">Share on X</a>
-      <a href="https://warpcast.com/~/compose?text=I%20just%20hatched%20a%20pet%20on%20%24HATCH%20%F0%9F%A5%9A%F0%9F%90%A3%20https://hatch-tau.vercel.app" target="_blank" class="share-btn">Share on Farcaster</a>
+      <a href="https://warpcast.com/~/compose?text=I%20just%20hatched%20a%20pet%20on%20%24HATCH%20%F0%9F%A5%9A%F0%9F%90%A3%20https://hatch-tau.vercel.app" target="_blank" class="share-btn farcaster">Share on Farcaster</a>
     </div>
     
+    <!-- Links -->
     <div class="links">
       <a href="https://basescan.org/token/0x6C4e4E072fE52bd862518967BBDa6eF4b3998C12" target="_blank">BaseScan</a>
       <a href="https://dexscreener.com/base/0x6C4e4E072fE52bd862518967BBDa6eF4b3998C12" target="_blank">DexScreener</a>
@@ -427,8 +516,8 @@
     const HATCH_ADDRESS = '0x6C4e4E072fE52bd862518967BBDa6eF4b3998C12';
     const BASE_CHAIN_ID = 8453;
     const BASE_RPC = 'https://mainnet.base.org';
+    const DEXSCREENER_API = 'https://api.dexscreener.com/latest/dex/tokens/';
     
-    // ERC20 minimal ABI for balanceOf
     const ERC20_ABI = [
       'function balanceOf(address owner) view returns (uint256)',
       'function decimals() view returns (uint8)'
@@ -478,9 +567,9 @@
     };
     
     let currentTier = 0;
-    let provider = null;
-    let signer = null;
+    let currentBalance = 0;
     
+    // DOM Elements
     const pet = document.getElementById('pet');
     const petContainer = document.getElementById('pet-container');
     const message = document.getElementById('message');
@@ -489,8 +578,11 @@
     const connectBtn = document.getElementById('connect-btn');
     const error = document.getElementById('error');
     const walletAddress = document.getElementById('wallet-address');
-    const tiers = document.getElementById('tiers');
+    const evolutionPreview = document.getElementById('evolution-preview');
+    const nextTierName = document.getElementById('next-tier-name');
+    const tokensNeeded = document.getElementById('tokens-needed');
     
+    // Utility Functions
     function getTierIndex(amount) {
       for (let i = TIERS.length - 1; i >= 0; i--) {
         if (amount >= TIERS[i].min) return i;
@@ -501,15 +593,57 @@
     function formatBalance(bal) {
       if (bal >= 1000000) return (bal / 1000000).toFixed(2) + 'M';
       if (bal >= 1000) return (bal / 1000).toFixed(2) + 'K';
-      return bal.toFixed(2);
+      if (bal > 0) return bal.toFixed(0);
+      return '0';
     }
     
+    function formatUSD(val) {
+      if (val >= 1000000) return '$' + (val / 1000000).toFixed(2) + 'M';
+      if (val >= 1000) return '$' + (val / 1000).toFixed(1) + 'K';
+      return '$' + val.toFixed(2);
+    }
+    
+    function formatPrice(price) {
+      const num = parseFloat(price);
+      if (num < 0.00001) return '$' + num.toExponential(2);
+      if (num < 0.01) return '$' + num.toFixed(6);
+      return '$' + num.toFixed(4);
+    }
+    
+    // Fetch Market Data
+    async function fetchMarketData() {
+      try {
+        const res = await fetch(DEXSCREENER_API + HATCH_ADDRESS);
+        const data = await res.json();
+        const pair = data.pairs?.[0];
+        
+        if (pair) {
+          document.getElementById('price').textContent = formatPrice(pair.priceUsd);
+          document.getElementById('price').classList.remove('loading');
+          
+          const change = pair.priceChange?.h24 || 0;
+          const changeEl = document.getElementById('change');
+          changeEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(1) + '%';
+          changeEl.classList.remove('loading');
+          changeEl.classList.add(change >= 0 ? 'positive' : 'negative');
+          
+          document.getElementById('mcap').textContent = formatUSD(pair.marketCap || pair.fdv || 0);
+          document.getElementById('mcap').classList.remove('loading');
+          
+          document.getElementById('volume').textContent = formatUSD(pair.volume?.h24 || 0);
+          document.getElementById('volume').classList.remove('loading');
+        }
+      } catch (err) {
+        console.error('Failed to fetch market data:', err);
+      }
+    }
+    
+    // Update Pet Display
     function updatePet(tierIndex) {
       const oldTier = currentTier;
       currentTier = tierIndex;
       const tier = TIERS[tierIndex];
       
-      // Update pet emoji with animation
       if (oldTier !== tierIndex) {
         pet.classList.add('hatching');
         setTimeout(() => {
@@ -524,8 +658,21 @@
       
       // Update tier highlights
       document.querySelectorAll('.tier').forEach((el, i) => {
-        el.classList.toggle('active', i === tierIndex);
+        el.classList.remove('active', 'next');
+        if (i === tierIndex) el.classList.add('active');
+        if (i === tierIndex + 1) el.classList.add('next');
       });
+      
+      // Update evolution preview
+      if (tierIndex < TIERS.length - 1) {
+        const nextTier = TIERS[tierIndex + 1];
+        const needed = nextTier.min - currentBalance;
+        nextTierName.textContent = nextTier.emoji + ' ' + nextTier.name;
+        tokensNeeded.textContent = formatBalance(needed);
+        evolutionPreview.style.display = 'block';
+      } else {
+        evolutionPreview.style.display = 'none';
+      }
     }
     
     function getMessageForTier(tierIndex) {
@@ -534,12 +681,14 @@
       return msgs[Math.floor(Math.random() * msgs.length)];
     }
     
+    // Pet Interaction
     petContainer.addEventListener('click', () => {
       pet.classList.add('wiggle');
       message.textContent = getMessageForTier(currentTier);
       setTimeout(() => pet.classList.remove('wiggle'), 500);
     });
     
+    // Wallet Connection
     async function connectWallet() {
       error.textContent = '';
       
@@ -552,11 +701,10 @@
         connectBtn.disabled = true;
         connectBtn.textContent = 'Connecting...';
         
-        // Request accounts
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         const address = accounts[0];
         
-        // Check/switch to Base
+        // Switch to Base if needed
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
         if (parseInt(chainId, 16) !== BASE_CHAIN_ID) {
           try {
@@ -583,8 +731,7 @@
         }
         
         // Get balance
-        provider = new ethers.BrowserProvider(window.ethereum);
-        signer = await provider.getSigner();
+        const provider = new ethers.BrowserProvider(window.ethereum);
         const contract = new ethers.Contract(HATCH_ADDRESS, ERC20_ABI, provider);
         
         const [bal, decimals] = await Promise.all([
@@ -592,23 +739,22 @@
           contract.decimals()
         ]);
         
-        const balanceNum = Number(ethers.formatUnits(bal, decimals));
-        const tierIndex = getTierIndex(balanceNum);
+        currentBalance = Number(ethers.formatUnits(bal, decimals));
+        const tierIndex = getTierIndex(currentBalance);
         
-        balance.textContent = formatBalance(balanceNum);
+        balance.textContent = formatBalance(currentBalance);
         walletAddress.textContent = address.slice(0, 6) + '...' + address.slice(-4);
         updatePet(tierIndex);
         
         connectBtn.textContent = 'Connected ✓';
         connectBtn.classList.add('connected');
         
-        if (balanceNum === 0) {
+        if (currentBalance === 0) {
           message.textContent = "You don't have any $HATCH yet. Buy some to hatch a pet!";
         } else {
           message.textContent = getMessageForTier(tierIndex);
         }
         
-        // Listen for account/chain changes
         window.ethereum.on('accountsChanged', () => location.reload());
         window.ethereum.on('chainChanged', () => location.reload());
         
@@ -622,12 +768,13 @@
     
     connectBtn.addEventListener('click', connectWallet);
     
-    // Check if already connected
+    // Initialize
+    fetchMarketData();
+    setInterval(fetchMarketData, 30000); // Refresh every 30s
+    
     if (window.ethereum) {
       window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
-        if (accounts.length > 0) {
-          connectWallet();
-        }
+        if (accounts.length > 0) connectWallet();
       });
     }
   </script>
