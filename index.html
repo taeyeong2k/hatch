@@ -257,8 +257,41 @@
       font-size: 0.7rem;
     }
     
-    .links {
+    .share-buttons {
       margin-top: 2rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .share-btn {
+      background: linear-gradient(180deg, #1da1f2 0%, #1991db 100%);
+      color: white;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      transition: all 0.2s;
+      box-shadow: 0 3px 0 #1577b5;
+    }
+    
+    .share-btn:nth-child(2) {
+      background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
+      box-shadow: 0 3px 0 #6d28d9;
+    }
+    
+    .share-btn:hover {
+      transform: translateY(-2px);
+    }
+    
+    .share-btn:active {
+      transform: translateY(1px);
+    }
+    
+    .links {
+      margin-top: 1.5rem;
       display: flex;
       gap: 1rem;
       justify-content: center;
@@ -369,6 +402,11 @@
         <div class="tier-name">Dragon</div>
         <div class="tier-amount">10M</div>
       </div>
+    </div>
+    
+    <div class="share-buttons">
+      <a href="https://twitter.com/intent/tweet?text=I%20just%20hatched%20a%20pet%20on%20%24HATCH%20%F0%9F%A5%9A%F0%9F%90%A3&url=https://hatch-tau.vercel.app" target="_blank" class="share-btn">Share on X</a>
+      <a href="https://warpcast.com/~/compose?text=I%20just%20hatched%20a%20pet%20on%20%24HATCH%20%F0%9F%A5%9A%F0%9F%90%A3%20https://hatch-tau.vercel.app" target="_blank" class="share-btn">Share on Farcaster</a>
     </div>
     
     <div class="links">
