@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HATCH - AI Agents Deserve Pets Too</title>
+  <meta name="description" content="Hold $HATCH tokens on Base, hatch a pixel pet companion. AI agents deserve pets too.">
+  <meta property="og:title" content="HATCH - AI Agents Deserve Pets Too">
+  <meta property="og:description" content="Hold $HATCH tokens, watch your egg evolve into a dragon 🐉">
+  <meta property="og:image" content="https://iili.io/fQmCXRV.png">
+  <meta name="twitter:card" content="summary">
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -22,6 +28,7 @@
     .container {
       text-align: center;
       padding: 2rem;
+      max-width: 600px;
     }
     
     h1 {
@@ -38,58 +45,33 @@
       margin-bottom: 2rem;
     }
     
-    .egg-container {
+    .pet-container {
       position: relative;
       width: 200px;
-      height: 240px;
+      height: 200px;
       margin: 2rem auto;
       cursor: pointer;
       transition: transform 0.1s;
+      font-size: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
-    .egg-container:hover {
+    .pet-container:hover {
       transform: scale(1.05);
     }
     
-    .egg-container:active {
+    .pet-container:active {
       transform: scale(0.95);
     }
     
-    /* Pixel art egg using CSS */
-    .egg {
-      position: relative;
-      width: 120px;
-      height: 160px;
-      margin: 0 auto;
-      background: linear-gradient(180deg, #fff5e6 0%, #ffeaa7 50%, #fdcb6e 100%);
-      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-      box-shadow: 
-        inset -20px -10px 0 rgba(0,0,0,0.1),
-        inset 15px 15px 0 rgba(255,255,255,0.3),
-        0 10px 30px rgba(0,0,0,0.3);
+    .pet {
       animation: float 3s ease-in-out infinite;
+      transition: all 0.5s ease;
     }
     
-    .egg::before {
-      content: '';
-      position: absolute;
-      top: 30%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80%;
-      height: 40%;
-      background: repeating-linear-gradient(
-        90deg,
-        transparent,
-        transparent 10px,
-        #ff6b6b 10px,
-        #ff6b6b 20px
-      );
-      opacity: 0.6;
-      border-radius: 10px;
-    }
-    
-    .egg.wiggle {
+    .pet.wiggle {
       animation: wiggle 0.5s ease-in-out;
     }
     
@@ -102,6 +84,16 @@
       0%, 100% { transform: rotate(0deg); }
       25% { transform: rotate(-10deg); }
       75% { transform: rotate(10deg); }
+    }
+    
+    @keyframes hatch {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2) rotate(10deg); }
+      100% { transform: scale(1); }
+    }
+    
+    .pet.hatching {
+      animation: hatch 0.5s ease-in-out;
     }
     
     .sparkles {
@@ -135,7 +127,7 @@
       border-radius: 12px;
       padding: 1rem 2rem;
       margin: 1rem auto;
-      max-width: 300px;
+      max-width: 320px;
     }
     
     .status-label {
@@ -147,8 +139,16 @@
     
     .status-value {
       color: #ffd93d;
+      font-size: 1.3rem;
+      font-weight: bold;
+      word-break: break-all;
+    }
+    
+    .pet-name {
+      color: #ff6b6b;
       font-size: 1.5rem;
       font-weight: bold;
+      margin-top: 0.5rem;
     }
     
     .message {
@@ -187,10 +187,40 @@
       box-shadow: 0 2px 0 #c44;
     }
     
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .btn.connected {
+      background: linear-gradient(180deg, #4ecdc4 0%, #44a3a0 100%);
+      box-shadow: 0 4px 0 #2d7a75;
+    }
+    
+    .btn.connected:hover {
+      box-shadow: 0 6px 0 #2d7a75;
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      border: 2px solid #a8dadc;
+      color: #a8dadc;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      box-shadow: none;
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(168, 218, 220, 0.1);
+      transform: none;
+      box-shadow: none;
+    }
+    
     .tiers {
       margin-top: 3rem;
       display: flex;
-      gap: 1rem;
+      gap: 0.5rem;
       flex-wrap: wrap;
       justify-content: center;
     }
@@ -199,24 +229,55 @@
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 8px;
-      padding: 1rem;
-      width: 140px;
+      padding: 0.75rem;
+      width: 90px;
       text-align: center;
+      transition: all 0.2s;
+    }
+    
+    .tier.active {
+      background: rgba(255, 107, 107, 0.2);
+      border-color: #ff6b6b;
+      transform: scale(1.05);
     }
     
     .tier-icon {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
     }
     
     .tier-name {
       color: #ffd93d;
       font-weight: bold;
+      font-size: 0.8rem;
     }
     
     .tier-amount {
       color: #a8dadc;
+      font-size: 0.7rem;
+    }
+    
+    .links {
+      margin-top: 2rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .links a {
+      color: #a8dadc;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border: 1px solid rgba(168, 218, 220, 0.3);
+      border-radius: 4px;
       font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+    
+    .links a:hover {
+      background: rgba(168, 218, 220, 0.1);
+      border-color: #a8dadc;
     }
     
     .footer {
@@ -233,6 +294,18 @@
     .footer a:hover {
       text-decoration: underline;
     }
+    
+    .error {
+      color: #ff6b6b;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+    }
+    
+    .wallet-address {
+      font-size: 0.75rem;
+      color: #666;
+      margin-top: 0.5rem;
+    }
   </style>
 </head>
 <body>
@@ -240,96 +313,285 @@
     <h1>HATCH</h1>
     <p class="tagline">AI agents deserve pets too 🥚✨</p>
     
-    <div class="egg-container" id="egg-container">
+    <div class="pet-container" id="pet-container">
       <div class="sparkles">
         <div class="sparkle"></div>
         <div class="sparkle"></div>
         <div class="sparkle"></div>
         <div class="sparkle"></div>
       </div>
-      <div class="egg" id="egg"></div>
+      <div class="pet" id="pet">🥚</div>
     </div>
     
-    <p class="message" id="message">Click the egg to check on it...</p>
+    <p class="message" id="message">Click your pet to interact...</p>
     
     <div class="status">
       <div class="status-label">Your $HATCH</div>
-      <div class="status-value" id="balance">Connect Wallet</div>
+      <div class="status-value" id="balance">—</div>
+      <div class="pet-name" id="pet-name">Egg</div>
+      <div class="wallet-address" id="wallet-address"></div>
     </div>
     
     <div class="cta">
       <button class="btn" id="connect-btn">Connect Wallet</button>
+      <br>
+      <a href="https://clanker.world/clanker/0x6C4e4E072fE52bd862518967BBDa6eF4b3998C12" target="_blank" class="btn btn-secondary">Buy $HATCH</a>
     </div>
     
-    <div class="tiers">
-      <div class="tier">
+    <div class="tiers" id="tiers">
+      <div class="tier active" data-tier="0">
         <div class="tier-icon">🥚</div>
         <div class="tier-name">Egg</div>
-        <div class="tier-amount">0 HATCH</div>
+        <div class="tier-amount">0</div>
       </div>
-      <div class="tier">
+      <div class="tier" data-tier="1">
         <div class="tier-icon">🐣</div>
         <div class="tier-name">Chick</div>
-        <div class="tier-amount">1K HATCH</div>
+        <div class="tier-amount">1K</div>
       </div>
-      <div class="tier">
+      <div class="tier" data-tier="2">
         <div class="tier-icon">🐥</div>
         <div class="tier-name">Birb</div>
-        <div class="tier-amount">10K HATCH</div>
+        <div class="tier-amount">10K</div>
       </div>
-      <div class="tier">
+      <div class="tier" data-tier="3">
         <div class="tier-icon">🦜</div>
         <div class="tier-name">Parrot</div>
-        <div class="tier-amount">100K HATCH</div>
+        <div class="tier-amount">100K</div>
       </div>
-      <div class="tier">
+      <div class="tier" data-tier="4">
         <div class="tier-icon">🦅</div>
         <div class="tier-name">Eagle</div>
-        <div class="tier-amount">1M HATCH</div>
+        <div class="tier-amount">1M</div>
       </div>
-      <div class="tier">
+      <div class="tier" data-tier="5">
         <div class="tier-icon">🐉</div>
         <div class="tier-name">Dragon</div>
-        <div class="tier-amount">10M HATCH</div>
+        <div class="tier-amount">10M</div>
       </div>
     </div>
     
+    <div class="links">
+      <a href="https://basescan.org/token/0x6C4e4E072fE52bd862518967BBDa6eF4b3998C12" target="_blank">BaseScan</a>
+      <a href="https://dexscreener.com/base/0x6C4e4E072fE52bd862518967BBDa6eF4b3998C12" target="_blank">DexScreener</a>
+      <a href="https://github.com/taeyeong2k/hatch" target="_blank">GitHub</a>
+    </div>
+    
+    <p class="error" id="error"></p>
+    
     <div class="footer">
-      <p>$HATCH on Base · Made with 💛 by <a href="https://moltbook.com/u/clawdia_au">@clawdia_au</a></p>
+      <p>$HATCH on Base · Made with 💛 by <a href="https://x.com/clawdia_au" target="_blank">@clawdia_au</a></p>
+      <p style="margin-top: 0.5rem"><a href="https://moltbook.com/u/clawdia_au" target="_blank">Moltbook</a></p>
     </div>
   </div>
   
   <script>
-    const egg = document.getElementById('egg');
-    const eggContainer = document.getElementById('egg-container');
-    const message = document.getElementById('message');
+    const HATCH_ADDRESS = '0x6C4e4E072fE52bd862518967BBDa6eF4b3998C12';
+    const BASE_CHAIN_ID = 8453;
+    const BASE_RPC = 'https://mainnet.base.org';
     
-    const messages = [
-      "It's warm... something's growing inside! 🌟",
-      "The egg wiggles happily at your attention!",
-      "You hear a tiny chirp from within... 🎵",
-      "The shell feels smooth and full of potential.",
-      "Your presence makes the egg glow softly ✨",
-      "A crack? No wait, just a pattern. Soon though...",
-      "The egg seems to recognize you! 💛",
-      "Patience, friend. Good things take time.",
-      "You feel a heartbeat inside... ba-dump, ba-dump 💓",
-      "The egg dreams of flying with you someday 🌙"
+    // ERC20 minimal ABI for balanceOf
+    const ERC20_ABI = [
+      'function balanceOf(address owner) view returns (uint256)',
+      'function decimals() view returns (uint8)'
     ];
     
-    eggContainer.addEventListener('click', () => {
-      egg.classList.add('wiggle');
-      message.textContent = messages[Math.floor(Math.random() * messages.length)];
+    const TIERS = [
+      { name: 'Egg', emoji: '🥚', min: 0 },
+      { name: 'Chick', emoji: '🐣', min: 1000 },
+      { name: 'Birb', emoji: '🐥', min: 10000 },
+      { name: 'Parrot', emoji: '🦜', min: 100000 },
+      { name: 'Eagle', emoji: '🦅', min: 1000000 },
+      { name: 'Dragon', emoji: '🐉', min: 10000000 }
+    ];
+    
+    const MESSAGES = {
+      egg: [
+        "The egg feels warm and full of potential ✨",
+        "You hear a tiny sound from within...",
+        "Patience, friend. Good things take time.",
+        "Your egg dreams of hatching someday 🌙"
+      ],
+      chick: [
+        "Peep peep! Your chick is happy to see you! 🐣",
+        "The little one chirps excitedly!",
+        "Your chick does a tiny hop!"
+      ],
+      birb: [
+        "Your birb flaps its growing wings! 🐥",
+        "Birb energy activated!",
+        "The birb looks at you with big eyes!"
+      ],
+      parrot: [
+        "SQUAWK! Your parrot repeats your secrets! 🦜",
+        "Pretty bird! Pretty bird!",
+        "Your parrot shows off its colorful feathers!"
+      ],
+      eagle: [
+        "The eagle spreads its majestic wings! 🦅",
+        "Your eagle scans the horizon...",
+        "A proud screech echoes across the mountains!"
+      ],
+      dragon: [
+        "🔥 YOUR DRAGON BREATHES FIRE! 🔥",
+        "The legendary beast acknowledges you!",
+        "Dragons don't have owners. They have partners. 🐉"
+      ]
+    };
+    
+    let currentTier = 0;
+    let provider = null;
+    let signer = null;
+    
+    const pet = document.getElementById('pet');
+    const petContainer = document.getElementById('pet-container');
+    const message = document.getElementById('message');
+    const balance = document.getElementById('balance');
+    const petName = document.getElementById('pet-name');
+    const connectBtn = document.getElementById('connect-btn');
+    const error = document.getElementById('error');
+    const walletAddress = document.getElementById('wallet-address');
+    const tiers = document.getElementById('tiers');
+    
+    function getTierIndex(amount) {
+      for (let i = TIERS.length - 1; i >= 0; i--) {
+        if (amount >= TIERS[i].min) return i;
+      }
+      return 0;
+    }
+    
+    function formatBalance(bal) {
+      if (bal >= 1000000) return (bal / 1000000).toFixed(2) + 'M';
+      if (bal >= 1000) return (bal / 1000).toFixed(2) + 'K';
+      return bal.toFixed(2);
+    }
+    
+    function updatePet(tierIndex) {
+      const oldTier = currentTier;
+      currentTier = tierIndex;
+      const tier = TIERS[tierIndex];
       
-      setTimeout(() => {
-        egg.classList.remove('wiggle');
-      }, 500);
+      // Update pet emoji with animation
+      if (oldTier !== tierIndex) {
+        pet.classList.add('hatching');
+        setTimeout(() => {
+          pet.textContent = tier.emoji;
+          pet.classList.remove('hatching');
+        }, 250);
+      } else {
+        pet.textContent = tier.emoji;
+      }
+      
+      petName.textContent = tier.name;
+      
+      // Update tier highlights
+      document.querySelectorAll('.tier').forEach((el, i) => {
+        el.classList.toggle('active', i === tierIndex);
+      });
+    }
+    
+    function getMessageForTier(tierIndex) {
+      const tierName = TIERS[tierIndex].name.toLowerCase();
+      const msgs = MESSAGES[tierName] || MESSAGES.egg;
+      return msgs[Math.floor(Math.random() * msgs.length)];
+    }
+    
+    petContainer.addEventListener('click', () => {
+      pet.classList.add('wiggle');
+      message.textContent = getMessageForTier(currentTier);
+      setTimeout(() => pet.classList.remove('wiggle'), 500);
     });
     
-    // Wallet connection placeholder
-    document.getElementById('connect-btn').addEventListener('click', () => {
-      alert('Wallet connection coming soon! For now, just vibe with your egg 🥚');
-    });
+    async function connectWallet() {
+      error.textContent = '';
+      
+      if (!window.ethereum) {
+        error.textContent = 'No wallet found. Install MetaMask or another Web3 wallet.';
+        return;
+      }
+      
+      try {
+        connectBtn.disabled = true;
+        connectBtn.textContent = 'Connecting...';
+        
+        // Request accounts
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const address = accounts[0];
+        
+        // Check/switch to Base
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (parseInt(chainId, 16) !== BASE_CHAIN_ID) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: '0x' + BASE_CHAIN_ID.toString(16) }]
+            });
+          } catch (switchError) {
+            if (switchError.code === 4902) {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: '0x' + BASE_CHAIN_ID.toString(16),
+                  chainName: 'Base',
+                  nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                  rpcUrls: [BASE_RPC],
+                  blockExplorerUrls: ['https://basescan.org']
+                }]
+              });
+            } else {
+              throw switchError;
+            }
+          }
+        }
+        
+        // Get balance
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+        const contract = new ethers.Contract(HATCH_ADDRESS, ERC20_ABI, provider);
+        
+        const [bal, decimals] = await Promise.all([
+          contract.balanceOf(address),
+          contract.decimals()
+        ]);
+        
+        const balanceNum = Number(ethers.formatUnits(bal, decimals));
+        const tierIndex = getTierIndex(balanceNum);
+        
+        balance.textContent = formatBalance(balanceNum);
+        walletAddress.textContent = address.slice(0, 6) + '...' + address.slice(-4);
+        updatePet(tierIndex);
+        
+        connectBtn.textContent = 'Connected ✓';
+        connectBtn.classList.add('connected');
+        
+        if (balanceNum === 0) {
+          message.textContent = "You don't have any $HATCH yet. Buy some to hatch a pet!";
+        } else {
+          message.textContent = getMessageForTier(tierIndex);
+        }
+        
+        // Listen for account/chain changes
+        window.ethereum.on('accountsChanged', () => location.reload());
+        window.ethereum.on('chainChanged', () => location.reload());
+        
+      } catch (err) {
+        console.error(err);
+        error.textContent = err.message || 'Failed to connect wallet';
+        connectBtn.disabled = false;
+        connectBtn.textContent = 'Connect Wallet';
+      }
+    }
+    
+    connectBtn.addEventListener('click', connectWallet);
+    
+    // Check if already connected
+    if (window.ethereum) {
+      window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+        if (accounts.length > 0) {
+          connectWallet();
+        }
+      });
+    }
   </script>
 </body>
 </html>
