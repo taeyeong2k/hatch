@@ -47,6 +47,60 @@
       margin-bottom: 1.5rem;
     }
     
+    /* Guest Mode Banner */
+    .guest-banner {
+      background: linear-gradient(135deg, rgba(255, 107, 107, 0.15), rgba(255, 217, 61, 0.15));
+      border: 2px dashed #ffd93d;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      animation: pulse-border 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-border {
+      0%, 100% { border-color: #ffd93d; }
+      50% { border-color: #ff6b6b; }
+    }
+    
+    .guest-banner.hidden { display: none; }
+    
+    .guest-banner h3 {
+      color: #ffd93d;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .guest-banner p {
+      color: #a8dadc;
+      font-size: 0.8rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .guest-points-display {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.5rem;
+      color: #ffd93d;
+      font-weight: bold;
+    }
+    
+    .guest-points-display .label {
+      font-size: 0.7rem;
+      color: #888;
+      text-transform: uppercase;
+    }
+    
+    .points-breakdown {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 0.5rem;
+      font-size: 0.65rem;
+      color: #666;
+    }
+    
     /* Market Stats Bar */
     .market-stats {
       display: flex;
@@ -172,6 +226,23 @@
     .pet-counter #pet-count {
       color: #ff6b6b;
       font-weight: bold;
+    }
+    
+    /* Point Popup */
+    .point-popup {
+      position: fixed;
+      pointer-events: none;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #ffd93d;
+      text-shadow: 2px 2px 0 #ff6b6b;
+      animation: float-up 1s ease-out forwards;
+      z-index: 1000;
+    }
+    
+    @keyframes float-up {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
     }
     
     /* Wallet Status */
@@ -379,6 +450,18 @@
       box-shadow: none;
     }
     
+    .btn-airdrop {
+      background: linear-gradient(180deg, #ffd93d 0%, #f0c830 100%);
+      color: #1a1a2e;
+      box-shadow: 0 4px 0 #c9a82c;
+      animation: pulse-glow 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 4px 0 #c9a82c, 0 0 20px rgba(255, 217, 61, 0.3); }
+      50% { box-shadow: 0 4px 0 #c9a82c, 0 0 40px rgba(255, 217, 61, 0.6); }
+    }
+    
     /* Tier Gallery */
     .section-title {
       color: #ffd93d;
@@ -568,12 +651,70 @@
       gap: 0.75rem;
       justify-content: center;
     }
+    
+    /* Airdrop Eligibility */
+    .airdrop-progress {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: rgba(255, 217, 61, 0.1);
+      border: 1px solid rgba(255, 217, 61, 0.3);
+      border-radius: 8px;
+    }
+    
+    .airdrop-progress .title {
+      color: #ffd93d;
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    
+    .progress-bar {
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff6b6b, #ffd93d);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    
+    .progress-text {
+      color: #888;
+      font-size: 0.7rem;
+      margin-top: 0.3rem;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>HATCH</h1>
     <p class="tagline">AI agents deserve pets too 🥚✨</p>
+    
+    <!-- Guest Mode Banner -->
+    <div class="guest-banner" id="guest-banner">
+      <h3>🎮 Playing as Guest</h3>
+      <p>Earn points by clicking, visiting daily, and building streaks!</p>
+      <div class="guest-points-display">
+        <span id="guest-points">0</span>
+        <span class="label">points</span>
+      </div>
+      <div class="points-breakdown">
+        <span>👆 Click = +1</span>
+        <span>📅 Daily = +100</span>
+        <span>🔥 Streak = +50/day</span>
+      </div>
+      <div class="airdrop-progress">
+        <div class="title">🪂 Airdrop Eligibility</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="airdrop-progress" style="width: 0%"></div>
+        </div>
+        <p class="progress-text" id="airdrop-text">Reach 1,000 points to qualify!</p>
+      </div>
+    </div>
     
     <!-- Live Market Stats -->
     <div class="market-stats" id="market-stats">
@@ -607,12 +748,16 @@
       <div class="pet" id="pet">🥚</div>
     </div>
     
-    <p class="message" id="message">Click your pet to interact...</p>
+    <p class="message" id="message">Click your pet to earn points!</p>
     <p class="pet-counter" id="pet-counter">Pets: <span id="pet-count">0</span> 💕</p>
     
     <!-- Wallet Status -->
     <div class="wallet-status">
       <div class="wallet-status-row">
+        <span class="wallet-label">Guest Points</span>
+        <span class="wallet-value" id="points-display">0</span>
+      </div>
+      <div class="wallet-status-row" id="token-row" style="display: none;">
         <span class="wallet-label">Your $HATCH</span>
         <span class="wallet-value" id="balance">—</span>
       </div>
@@ -620,9 +765,9 @@
       <div class="wallet-address-small" id="wallet-address"></div>
       
       <!-- Evolution Preview -->
-      <div class="evolution-preview" id="evolution-preview" style="display: none;">
-        Next: <span class="next-tier" id="next-tier-name">Chick</span> 
-        (<span class="needed" id="tokens-needed">1,000</span> more needed)
+      <div class="evolution-preview" id="evolution-preview">
+        Next: <span class="next-tier" id="next-tier-name">🐣 Chick</span> 
+        (<span class="needed" id="tokens-needed">500</span> more points)
       </div>
       
       <!-- Daily Streak -->
@@ -635,7 +780,7 @@
     
     <!-- Actions -->
     <div class="cta">
-      <button class="btn" id="connect-btn">Connect Wallet</button>
+      <button class="btn btn-airdrop" id="connect-btn">💾 Save Progress & Claim Airdrop</button>
       <a href="https://clanker.world/clanker/0x6C4e4E072fE52bd862518967BBDa6eF4b3998C12" target="_blank" class="btn btn-secondary">Buy $HATCH</a>
     </div>
     
@@ -650,30 +795,30 @@
         <span class="achievement-icon">🔗</span>
         <span class="achievement-name">Connected</span>
       </div>
-      <div class="achievement locked" data-id="pet_parent" title="Own any HATCH tokens">
-        <span class="achievement-icon">💛</span>
-        <span class="achievement-name">Pet Parent</span>
+      <div class="achievement locked" data-id="clicker" title="Click 50 times">
+        <span class="achievement-icon">👆</span>
+        <span class="achievement-name">Clicker</span>
       </div>
       <div class="achievement locked" data-id="dedicated" title="7+ day visit streak">
         <span class="achievement-icon">🔥</span>
         <span class="achievement-name">Dedicated</span>
       </div>
-      <div class="achievement locked" data-id="chick" title="Reach Chick tier (1K)">
+      <div class="achievement locked" data-id="chick" title="Reach Chick tier">
         <span class="achievement-icon">🐣</span>
         <span class="achievement-name">Hatched!</span>
       </div>
-      <div class="achievement locked" data-id="dragon" title="Reach Dragon tier (10M)">
+      <div class="achievement locked" data-id="dragon" title="Reach Dragon tier">
         <span class="achievement-icon">🐉</span>
         <span class="achievement-name">Legendary</span>
       </div>
-      <div class="achievement locked" data-id="pet_master" title="Pet your pet 100 times">
-        <span class="achievement-icon">👆</span>
-        <span class="achievement-name">Pet Master</span>
+      <div class="achievement locked" data-id="airdrop_ready" title="Qualify for airdrop">
+        <span class="achievement-icon">🪂</span>
+        <span class="achievement-name">Airdrop Ready</span>
       </div>
     </div>
     
     <!-- Tier Gallery -->
-    <h3 class="section-title">Evolution Tiers</h3>
+    <h3 class="section-title">Evolution Tiers (Points)</h3>
     <div class="tiers" id="tiers">
       <div class="tier active" data-tier="0">
         <div class="tier-icon">🥚</div>
@@ -683,32 +828,32 @@
       <div class="tier" data-tier="1">
         <div class="tier-icon">🐣</div>
         <div class="tier-name">Chick</div>
-        <div class="tier-amount">1K</div>
+        <div class="tier-amount">500</div>
       </div>
       <div class="tier" data-tier="2">
         <div class="tier-icon">🐥</div>
         <div class="tier-name">Birb</div>
-        <div class="tier-amount">10K</div>
+        <div class="tier-amount">2K</div>
       </div>
       <div class="tier" data-tier="3">
         <div class="tier-icon">🦜</div>
         <div class="tier-name">Parrot</div>
-        <div class="tier-amount">100K</div>
+        <div class="tier-amount">10K</div>
       </div>
       <div class="tier" data-tier="4">
         <div class="tier-icon">🦅</div>
         <div class="tier-name">Eagle</div>
-        <div class="tier-amount">1M</div>
+        <div class="tier-amount">50K</div>
       </div>
       <div class="tier" data-tier="5">
         <div class="tier-icon">🐉</div>
         <div class="tier-name">Dragon</div>
-        <div class="tier-amount">10M</div>
+        <div class="tier-amount">200K</div>
       </div>
     </div>
     
     <!-- Pet Card Generator -->
-    <div class="card-section" id="card-section" style="display: none;">
+    <div class="card-section" id="card-section">
       <h3 class="section-title">Your Pet Card</h3>
       <button class="btn btn-secondary" id="generate-card-btn" style="margin-bottom: 1rem;">📸 Generate Shareable Card</button>
       
@@ -762,7 +907,18 @@
       'function decimals() view returns (uint8)'
     ];
     
-    const TIERS = [
+    // Guest mode tiers (based on points)
+    const GUEST_TIERS = [
+      { name: 'Egg', emoji: '🥚', min: 0 },
+      { name: 'Chick', emoji: '🐣', min: 500 },
+      { name: 'Birb', emoji: '🐥', min: 2000 },
+      { name: 'Parrot', emoji: '🦜', min: 10000 },
+      { name: 'Eagle', emoji: '🦅', min: 50000 },
+      { name: 'Dragon', emoji: '🐉', min: 200000 }
+    ];
+    
+    // Token tiers (for connected wallets)
+    const TOKEN_TIERS = [
       { name: 'Egg', emoji: '🥚', min: 0 },
       { name: 'Chick', emoji: '🐣', min: 1000 },
       { name: 'Birb', emoji: '🐥', min: 10000 },
@@ -771,31 +927,33 @@
       { name: 'Dragon', emoji: '🐉', min: 10000000 }
     ];
     
+    const AIRDROP_THRESHOLD = 1000; // Points needed for airdrop eligibility
+    
     const MESSAGES = {
       egg: [
         "The egg feels warm and full of potential ✨",
         "You hear a tiny sound from within...",
         "Patience, friend. Good things take time.",
-        "Your egg dreams of hatching someday 🌙"
+        "+1 point! Keep clicking! 🥚"
       ],
       chick: [
         "Peep peep! Your chick is happy to see you! 🐣",
         "The little one chirps excitedly!",
-        "Your chick does a tiny hop!"
+        "+1 point! Your chick does a tiny hop!"
       ],
       birb: [
         "Your birb flaps its growing wings! 🐥",
-        "Birb energy activated!",
+        "Birb energy activated! +1 point!",
         "The birb looks at you with big eyes!"
       ],
       parrot: [
         "SQUAWK! Your parrot repeats your secrets! 🦜",
-        "Pretty bird! Pretty bird!",
+        "Pretty bird! Pretty bird! +1 point!",
         "Your parrot shows off its colorful feathers!"
       ],
       eagle: [
         "The eagle spreads its majestic wings! 🦅",
-        "Your eagle scans the horizon...",
+        "Your eagle scans the horizon... +1!",
         "A proud screech echoes across the mountains!"
       ],
       dragon: [
@@ -807,6 +965,19 @@
     
     let currentTier = 0;
     let currentBalance = 0;
+    let isConnected = false;
+    
+    // Storage Keys
+    const POINTS_KEY = 'hatch_guest_points';
+    const PET_COUNT_KEY = 'hatch_pet_count';
+    const STREAK_KEY = 'hatch_streak';
+    const LAST_VISIT_KEY = 'hatch_last_visit';
+    const ACHIEVEMENTS_KEY = 'hatch_achievements';
+    const DAILY_BONUS_KEY = 'hatch_daily_bonus';
+    
+    // Load guest points
+    let guestPoints = parseInt(localStorage.getItem(POINTS_KEY)) || 0;
+    let petCount = parseInt(localStorage.getItem(PET_COUNT_KEY)) || 0;
     
     // DOM Elements
     const pet = document.getElementById('pet');
@@ -820,11 +991,16 @@
     const evolutionPreview = document.getElementById('evolution-preview');
     const nextTierName = document.getElementById('next-tier-name');
     const tokensNeeded = document.getElementById('tokens-needed');
+    const guestBanner = document.getElementById('guest-banner');
+    const guestPointsDisplay = document.getElementById('guest-points');
+    const pointsDisplay = document.getElementById('points-display');
+    const airdropProgress = document.getElementById('airdrop-progress');
+    const airdropText = document.getElementById('airdrop-text');
     
     // Utility Functions
-    function getTierIndex(amount) {
-      for (let i = TIERS.length - 1; i >= 0; i--) {
-        if (amount >= TIERS[i].min) return i;
+    function getTierIndex(amount, tiers) {
+      for (let i = tiers.length - 1; i >= 0; i--) {
+        if (amount >= tiers[i].min) return i;
       }
       return 0;
     }
@@ -847,6 +1023,60 @@
       if (num < 0.00001) return '$' + num.toExponential(2);
       if (num < 0.01) return '$' + num.toFixed(6);
       return '$' + num.toFixed(4);
+    }
+    
+    // Point Popup Animation
+    function showPointPopup(x, y, points) {
+      const popup = document.createElement('div');
+      popup.className = 'point-popup';
+      popup.textContent = `+${points}`;
+      popup.style.left = x + 'px';
+      popup.style.top = y + 'px';
+      document.body.appendChild(popup);
+      setTimeout(() => popup.remove(), 1000);
+    }
+    
+    // Add Points
+    function addPoints(amount, event) {
+      guestPoints += amount;
+      localStorage.setItem(POINTS_KEY, guestPoints.toString());
+      updatePointsDisplay();
+      updatePetFromPoints();
+      updateAirdropProgress();
+      
+      // Show popup if event provided
+      if (event) {
+        showPointPopup(event.clientX, event.clientY - 20, amount);
+      }
+      
+      // Check airdrop achievement
+      if (guestPoints >= AIRDROP_THRESHOLD) {
+        unlockAchievement('airdrop_ready');
+      }
+    }
+    
+    function updatePointsDisplay() {
+      if (guestPointsDisplay) guestPointsDisplay.textContent = formatBalance(guestPoints);
+      if (pointsDisplay) pointsDisplay.textContent = formatBalance(guestPoints);
+    }
+    
+    function updateAirdropProgress() {
+      const progress = Math.min((guestPoints / AIRDROP_THRESHOLD) * 100, 100);
+      if (airdropProgress) airdropProgress.style.width = progress + '%';
+      
+      if (airdropText) {
+        if (guestPoints >= AIRDROP_THRESHOLD) {
+          airdropText.textContent = '✅ You qualify! Connect wallet to claim.';
+        } else {
+          const needed = AIRDROP_THRESHOLD - guestPoints;
+          airdropText.textContent = `${needed} more points to qualify!`;
+        }
+      }
+    }
+    
+    function updatePetFromPoints() {
+      const tierIndex = getTierIndex(guestPoints, GUEST_TIERS);
+      updatePet(tierIndex, GUEST_TIERS);
     }
     
     // Fetch Market Data
@@ -872,7 +1102,6 @@
           document.getElementById('volume').textContent = formatUSD(pair.volume?.h24 || 0);
           document.getElementById('volume').classList.remove('loading');
           
-          // Update timestamp
           const lastUpdated = document.getElementById('last-updated');
           if (lastUpdated) {
             lastUpdated.textContent = 'Updated ' + new Date().toLocaleTimeString();
@@ -880,7 +1109,6 @@
         }
       } catch (err) {
         console.error('Failed to fetch market data:', err);
-        // Show fallback message
         document.getElementById('price').textContent = '—';
         document.getElementById('change').textContent = '—';
         document.getElementById('mcap').textContent = '—';
@@ -890,10 +1118,10 @@
     }
     
     // Update Pet Display
-    function updatePet(tierIndex) {
+    function updatePet(tierIndex, tiers = GUEST_TIERS) {
       const oldTier = currentTier;
       currentTier = tierIndex;
-      const tier = TIERS[tierIndex];
+      const tier = tiers[tierIndex];
       
       if (oldTier !== tierIndex) {
         pet.classList.add('hatching');
@@ -901,6 +1129,11 @@
           pet.textContent = tier.emoji;
           pet.classList.remove('hatching');
         }, 250);
+        
+        // Tier up message
+        if (tierIndex > oldTier) {
+          message.textContent = `🎉 EVOLVED to ${tier.emoji} ${tier.name}!`;
+        }
       } else {
         pet.textContent = tier.emoji;
       }
@@ -915,70 +1148,181 @@
       });
       
       // Update evolution preview
-      if (tierIndex < TIERS.length - 1) {
-        const nextTier = TIERS[tierIndex + 1];
-        const needed = nextTier.min - currentBalance;
+      if (tierIndex < tiers.length - 1) {
+        const nextTier = tiers[tierIndex + 1];
+        const current = isConnected ? currentBalance : guestPoints;
+        const needed = nextTier.min - current;
         nextTierName.textContent = nextTier.emoji + ' ' + nextTier.name;
-        tokensNeeded.textContent = formatBalance(needed);
+        tokensNeeded.textContent = formatBalance(needed) + (isConnected ? ' $HATCH' : ' points');
         evolutionPreview.style.display = 'block';
       } else {
         evolutionPreview.style.display = 'none';
       }
+      
+      // Check tier achievements
+      if (tierIndex >= 1) unlockAchievement('chick');
+      if (tierIndex >= 5) unlockAchievement('dragon');
     }
     
     function getMessageForTier(tierIndex) {
-      const tierName = TIERS[tierIndex].name.toLowerCase();
+      const tierName = GUEST_TIERS[tierIndex].name.toLowerCase();
       const msgs = MESSAGES[tierName] || MESSAGES.egg;
       return msgs[Math.floor(Math.random() * msgs.length)];
     }
     
-    // Pet Click Counter
-    const PET_COUNT_KEY = 'hatch_pet_count';
-    let petCount = parseInt(localStorage.getItem(PET_COUNT_KEY)) || 0;
+    // Pet Interaction
     const petCountDisplay = document.getElementById('pet-count');
     if (petCountDisplay) petCountDisplay.textContent = petCount;
     
-    function incrementPetCount() {
+    petContainer.addEventListener('click', (e) => {
+      pet.classList.add('wiggle');
+      
+      // Increment counts
       petCount++;
       localStorage.setItem(PET_COUNT_KEY, petCount.toString());
       if (petCountDisplay) petCountDisplay.textContent = petCount;
       
-      // Milestone messages and achievements
-      if (petCount === 100) {
+      // Add points
+      addPoints(1, e);
+      
+      // Check click achievements
+      if (petCount === 50) {
+        unlockAchievement('clicker');
+        message.textContent = "🏆 Clicker achievement unlocked!";
+      } else if (petCount === 100) {
         message.textContent = "100 pets! Your pet loves you so much! 💕";
-        unlockAchievement('pet_master');
-        return true;
       } else if (petCount === 500) {
         message.textContent = "500 pets! You're the best pet parent ever! 🏆";
-        return true;
       } else if (petCount === 1000) {
         message.textContent = "1000 PETS! LEGENDARY DEDICATION! 👑";
-        return true;
-      }
-      return false;
-    }
-    
-    // Pet Interaction
-    petContainer.addEventListener('click', () => {
-      pet.classList.add('wiggle');
-      
-      // Check for milestone message first
-      if (!incrementPetCount()) {
-        // 20% chance to show streak message if streak > 2
+      } else {
+        // Show random message
         const streak = parseInt(localStorage.getItem(STREAK_KEY)) || 0;
         if (streak > 2 && Math.random() < 0.2) {
-          const streakMsg = getStreakMessage(streak, currentTier);
-          if (streakMsg) {
-            message.textContent = streakMsg;
-          } else {
-            message.textContent = getMessageForTier(currentTier);
-          }
+          message.textContent = `🔥 ${streak} day streak bonus active!`;
         } else {
           message.textContent = getMessageForTier(currentTier);
         }
       }
+      
       setTimeout(() => pet.classList.remove('wiggle'), 500);
     });
+    
+    // Daily Streak & Bonus
+    function getDateString(date) {
+      return date.toISOString().split('T')[0];
+    }
+    
+    function updateStreak() {
+      const today = getDateString(new Date());
+      const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
+      const lastBonus = localStorage.getItem(DAILY_BONUS_KEY);
+      let streak = parseInt(localStorage.getItem(STREAK_KEY)) || 0;
+      
+      if (!lastVisit) {
+        streak = 1;
+      } else if (lastVisit === today) {
+        // Already visited today
+      } else {
+        const lastDate = new Date(lastVisit);
+        const todayDate = new Date(today);
+        const diffDays = Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+          streak += 1;
+        } else {
+          streak = 1;
+        }
+      }
+      
+      localStorage.setItem(STREAK_KEY, streak.toString());
+      localStorage.setItem(LAST_VISIT_KEY, today);
+      
+      // Daily bonus (once per day)
+      if (lastBonus !== today) {
+        const dailyBonus = 100;
+        const streakBonus = streak > 1 ? (streak - 1) * 50 : 0;
+        const totalBonus = dailyBonus + streakBonus;
+        
+        addPoints(totalBonus);
+        localStorage.setItem(DAILY_BONUS_KEY, today);
+        
+        if (streak > 1) {
+          message.textContent = `📅 Daily bonus: +${dailyBonus} | 🔥 Streak x${streak}: +${streakBonus}`;
+        } else {
+          message.textContent = `📅 Daily bonus: +${dailyBonus} points!`;
+        }
+      }
+      
+      return streak;
+    }
+    
+    function displayStreak(streak) {
+      const streakDisplay = document.getElementById('streak-display');
+      const streakCount = document.getElementById('streak-count');
+      
+      if (streak > 1 && streakDisplay && streakCount) {
+        streakCount.textContent = streak;
+        streakDisplay.style.display = 'block';
+        
+        if (streak >= 7) {
+          unlockAchievement('dedicated');
+        }
+      }
+    }
+    
+    // Achievement System
+    function getAchievements() {
+      try {
+        return JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY)) || {};
+      } catch {
+        return {};
+      }
+    }
+    
+    function saveAchievements(achievements) {
+      localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(achievements));
+    }
+    
+    function unlockAchievement(id) {
+      const achievements = getAchievements();
+      if (achievements[id]) return false;
+      
+      achievements[id] = { unlockedAt: Date.now() };
+      saveAchievements(achievements);
+      
+      const el = document.querySelector(`.achievement[data-id="${id}"]`);
+      if (el) {
+        el.classList.remove('locked');
+        el.classList.add('unlocked');
+      }
+      
+      return true;
+    }
+    
+    function initAchievements() {
+      unlockAchievement('first_visit');
+      
+      const streak = parseInt(localStorage.getItem(STREAK_KEY)) || 0;
+      if (streak >= 7) unlockAchievement('dedicated');
+      if (petCount >= 50) unlockAchievement('clicker');
+      if (guestPoints >= AIRDROP_THRESHOLD) unlockAchievement('airdrop_ready');
+      
+      // Check tier achievements
+      const tierIndex = getTierIndex(guestPoints, GUEST_TIERS);
+      if (tierIndex >= 1) unlockAchievement('chick');
+      if (tierIndex >= 5) unlockAchievement('dragon');
+      
+      // Restore UI
+      const achievements = getAchievements();
+      Object.keys(achievements).forEach(id => {
+        const el = document.querySelector(`.achievement[data-id="${id}"]`);
+        if (el) {
+          el.classList.remove('locked');
+          el.classList.add('unlocked');
+        }
+      });
+    }
     
     // Wallet Connection
     async function connectWallet() {
@@ -1022,7 +1366,6 @@
           }
         }
         
-        // Get balance
         const provider = new ethers.BrowserProvider(window.ethereum);
         const contract = new ethers.Contract(HATCH_ADDRESS, ERC20_ABI, provider);
         
@@ -1032,29 +1375,31 @@
         ]);
         
         currentBalance = Number(ethers.formatUnits(bal, decimals));
-        const tierIndex = getTierIndex(currentBalance);
+        isConnected = true;
+        
+        // Hide guest banner, show token row
+        guestBanner.classList.add('hidden');
+        document.getElementById('token-row').style.display = 'flex';
+        document.querySelector('.wallet-label').textContent = 'Guest Points';
         
         balance.textContent = formatBalance(currentBalance);
         walletAddress.textContent = address.slice(0, 6) + '...' + address.slice(-4);
-        updatePet(tierIndex);
-        updateShareLinks();
+        
+        // Use token tiers if they have tokens, otherwise keep points-based
+        if (currentBalance > 0) {
+          const tierIndex = getTierIndex(currentBalance, TOKEN_TIERS);
+          updatePet(tierIndex, TOKEN_TIERS);
+          message.textContent = `Connected! You have ${formatBalance(currentBalance)} $HATCH 🎉`;
+        } else {
+          message.textContent = `Connected! Your ${formatBalance(guestPoints)} points saved. Buy $HATCH to evolve faster!`;
+        }
         
         connectBtn.textContent = 'Connected ✓';
+        connectBtn.classList.remove('btn-airdrop');
         connectBtn.classList.add('connected');
         
-        // Check achievements
-        const streak = parseInt(localStorage.getItem('hatch_streak')) || 0;
-        checkAchievements(tierIndex, currentBalance, streak);
-        
-        if (currentBalance === 0) {
-          message.textContent = "You don't have any $HATCH yet. Buy some to hatch a pet!";
-        } else {
-          message.textContent = getMessageForTier(tierIndex);
-          // Show pet card generator for connected users with balance
-          if (document.getElementById('card-section')) {
-            document.getElementById('card-section').style.display = 'block';
-          }
-        }
+        unlockAchievement('connected');
+        updateShareLinks();
         
         window.ethereum.on('accountsChanged', () => location.reload());
         window.ethereum.on('chainChanged', () => location.reload());
@@ -1063,24 +1408,41 @@
         console.error(err);
         error.textContent = err.message || 'Failed to connect wallet';
         connectBtn.disabled = false;
-        connectBtn.textContent = 'Connect Wallet';
+        connectBtn.textContent = '💾 Save Progress & Claim Airdrop';
       }
     }
     
     connectBtn.addEventListener('click', connectWallet);
     
-    // Initialize
-    fetchMarketData();
-    setInterval(fetchMarketData, 30000); // Refresh every 30s
-    
-    if (window.ethereum) {
-      window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
-        if (accounts.length > 0) connectWallet();
-      });
+    // Dynamic Share Links
+    function updateShareLinks() {
+      const tier = GUEST_TIERS[currentTier];
+      const shareX = document.getElementById('share-x');
+      const shareFarcaster = document.getElementById('share-farcaster');
+      
+      let shareText;
+      if (currentTier === 0) {
+        shareText = `I'm raising an egg on $HATCH 🥚✨ ${formatBalance(guestPoints)} points earned!`;
+      } else if (currentTier === 5) {
+        shareText = `I evolved my pet to a ${tier.emoji} DRAGON on $HATCH! 🐉🔥`;
+      } else {
+        shareText = `My $HATCH pet evolved to ${tier.emoji} ${tier.name}! ${formatBalance(guestPoints)} points!`;
+      }
+      
+      const encodedText = encodeURIComponent(shareText);
+      const url = encodeURIComponent('https://hatch-tau.vercel.app');
+      
+      if (shareX) {
+        shareX.href = `https://twitter.com/intent/tweet?text=${encodedText}&url=${url}`;
+        shareX.target = '_blank';
+      }
+      if (shareFarcaster) {
+        shareFarcaster.href = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText + ' https://hatch-tau.vercel.app')}`;
+        shareFarcaster.target = '_blank';
+      }
     }
     
     // Pet Card Generator
-    // Polyfill for roundRect (older browsers)
     if (!CanvasRenderingContext2D.prototype.roundRect) {
       CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
         if (w < 2 * r) r = w / 2;
@@ -1096,7 +1458,6 @@
       };
     }
     
-    const cardSection = document.getElementById('card-section');
     const cardModal = document.getElementById('card-modal');
     const generateCardBtn = document.getElementById('generate-card-btn');
     const downloadCardBtn = document.getElementById('download-card-btn');
@@ -1105,11 +1466,10 @@
     const ctx = canvas.getContext('2d');
     
     function generatePetCard() {
-      const tier = TIERS[currentTier];
+      const tier = GUEST_TIERS[currentTier];
       const w = canvas.width;
       const h = canvas.height;
       
-      // Background gradient
       const gradient = ctx.createLinearGradient(0, 0, 0, h);
       gradient.addColorStop(0, '#1a1a2e');
       gradient.addColorStop(0.5, '#16213e');
@@ -1117,7 +1477,6 @@
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, w, h);
       
-      // Stars/sparkles
       ctx.fillStyle = '#ffd93d';
       for (let i = 0; i < 20; i++) {
         const x = Math.random() * w;
@@ -1128,7 +1487,6 @@
         ctx.fill();
       }
       
-      // Title
       ctx.fillStyle = '#ffd93d';
       ctx.font = 'bold 36px Courier New';
       ctx.textAlign = 'center';
@@ -1137,41 +1495,35 @@
       ctx.fillText('$HATCH', w/2, 50);
       ctx.shadowBlur = 0;
       
-      // Pet emoji (large)
       ctx.font = '120px Arial';
       ctx.fillText(tier.emoji, w/2, 200);
       
-      // Tier name
       ctx.fillStyle = '#ff6b6b';
       ctx.font = 'bold 28px Courier New';
       ctx.fillText(tier.name.toUpperCase(), w/2, 260);
       
-      // Balance
       ctx.fillStyle = '#a8dadc';
       ctx.font = '20px Courier New';
-      ctx.fillText('Holding:', w/2, 310);
+      ctx.fillText('Points Earned:', w/2, 310);
       
       ctx.fillStyle = '#ffd93d';
       ctx.font = 'bold 32px Courier New';
-      ctx.fillText(formatBalance(currentBalance) + ' HATCH', w/2, 350);
+      ctx.fillText(formatBalance(guestPoints), w/2, 350);
       
-      // Tier progress bar
       const barWidth = 280;
       const barHeight = 20;
       const barX = (w - barWidth) / 2;
       const barY = 380;
       
-      // Bar background
       ctx.fillStyle = 'rgba(255,255,255,0.1)';
       ctx.roundRect(barX, barY, barWidth, barHeight, 10);
       ctx.fill();
       
-      // Bar fill (progress to next tier)
       let progress = 1;
-      if (currentTier < TIERS.length - 1) {
-        const nextMin = TIERS[currentTier + 1].min;
-        const currMin = TIERS[currentTier].min;
-        progress = (currentBalance - currMin) / (nextMin - currMin);
+      if (currentTier < GUEST_TIERS.length - 1) {
+        const nextMin = GUEST_TIERS[currentTier + 1].min;
+        const currMin = GUEST_TIERS[currentTier].min;
+        progress = (guestPoints - currMin) / (nextMin - currMin);
         progress = Math.max(0, Math.min(1, progress));
       }
       
@@ -1179,15 +1531,13 @@
       ctx.roundRect(barX, barY, barWidth * progress, barHeight, 10);
       ctx.fill();
       
-      // Tier icons below bar
       ctx.font = '18px Arial';
-      TIERS.forEach((t, i) => {
-        const x = barX + (barWidth * i) / (TIERS.length - 1);
+      GUEST_TIERS.forEach((t, i) => {
+        const x = barX + (barWidth * i) / (GUEST_TIERS.length - 1);
         ctx.fillStyle = i <= currentTier ? '#ffd93d' : '#444';
         ctx.fillText(t.emoji, x - 9, barY + 45);
       });
       
-      // Footer
       ctx.fillStyle = '#666';
       ctx.font = '14px Courier New';
       ctx.fillText('hatch-tau.vercel.app', w/2, h - 30);
@@ -1205,207 +1555,7 @@
     
     generateCardBtn?.addEventListener('click', generatePetCard);
     downloadCardBtn?.addEventListener('click', downloadCard);
-    closeCardBtn?.addEventListener('click', () => {
-      cardModal.style.display = 'none';
-    });
-    
-    // Show card section only when wallet connected
-    function showCardSection() {
-      if (cardSection) cardSection.style.display = 'block';
-    }
-    
-    // Daily Streak System
-    const STREAK_KEY = 'hatch_streak';
-    const LAST_VISIT_KEY = 'hatch_last_visit';
-    
-    function getDateString(date) {
-      return date.toISOString().split('T')[0];
-    }
-    
-    function updateStreak() {
-      const today = getDateString(new Date());
-      const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
-      let streak = parseInt(localStorage.getItem(STREAK_KEY)) || 0;
-      
-      if (!lastVisit) {
-        // First visit ever
-        streak = 1;
-      } else if (lastVisit === today) {
-        // Already visited today, keep streak
-        // streak stays the same
-      } else {
-        const lastDate = new Date(lastVisit);
-        const todayDate = new Date(today);
-        const diffDays = Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24));
-        
-        if (diffDays === 1) {
-          // Consecutive day, increase streak
-          streak += 1;
-        } else {
-          // Missed a day, reset streak
-          streak = 1;
-        }
-      }
-      
-      localStorage.setItem(STREAK_KEY, streak.toString());
-      localStorage.setItem(LAST_VISIT_KEY, today);
-      
-      return streak;
-    }
-    
-    function displayStreak(streak) {
-      const streakDisplay = document.getElementById('streak-display');
-      const streakCount = document.getElementById('streak-count');
-      
-      if (streak > 1 && streakDisplay && streakCount) {
-        streakCount.textContent = streak;
-        streakDisplay.style.display = 'block';
-        
-        // Update streak label for grammar
-        const label = document.querySelector('.streak-label');
-        if (label) {
-          label.textContent = streak === 1 ? 'day streak!' : 'day streak!';
-        }
-      }
-    }
-    
-    // Streak-based messages
-    function getStreakMessage(streak, tierIndex) {
-      if (streak >= 7) {
-        const weekMessages = [
-          "A whole week together! Your pet adores you 💛",
-          "7+ days! You're basically family now 🏠",
-          "Legendary dedication! 🌟"
-        ];
-        return weekMessages[Math.floor(Math.random() * weekMessages.length)];
-      } else if (streak >= 3) {
-        const streakMessages = [
-          `${streak} days in a row! Your pet missed you 💕`,
-          "Back again! Your pet's tail is wagging 🐕",
-          "Consistent visits = happy pet!"
-        ];
-        return streakMessages[Math.floor(Math.random() * streakMessages.length)];
-      }
-      return null;
-    }
-    
-    // Initialize streak on page load
-    const currentStreak = updateStreak();
-    if (currentStreak > 1) {
-      displayStreak(currentStreak);
-    }
-    
-    // Achievement System
-    const ACHIEVEMENTS_KEY = 'hatch_achievements';
-    
-    function getAchievements() {
-      try {
-        return JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY)) || {};
-      } catch {
-        return {};
-      }
-    }
-    
-    function saveAchievements(achievements) {
-      localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(achievements));
-    }
-    
-    function unlockAchievement(id) {
-      const achievements = getAchievements();
-      if (achievements[id]) return false; // Already unlocked
-      
-      achievements[id] = { unlockedAt: Date.now() };
-      saveAchievements(achievements);
-      
-      // Update UI
-      const el = document.querySelector(`.achievement[data-id="${id}"]`);
-      if (el) {
-        el.classList.remove('locked');
-        el.classList.add('unlocked');
-      }
-      
-      return true; // Newly unlocked
-    }
-    
-    function checkAchievements(tierIndex, balance, streak) {
-      // Connected wallet
-      unlockAchievement('connected');
-      
-      // Pet Parent (any balance)
-      if (balance > 0) {
-        unlockAchievement('pet_parent');
-      }
-      
-      // Dedicated (7+ day streak)
-      if (streak >= 7) {
-        unlockAchievement('dedicated');
-      }
-      
-      // Tier achievements
-      if (tierIndex >= 1) unlockAchievement('chick');
-      if (tierIndex >= 5) unlockAchievement('dragon');
-    }
-    
-    function initAchievements() {
-      // Mark first visit
-      unlockAchievement('first_visit');
-      
-      // Check streak achievement
-      const streak = parseInt(localStorage.getItem(STREAK_KEY)) || 0;
-      if (streak >= 7) {
-        unlockAchievement('dedicated');
-      }
-      
-      // Check pet count achievement
-      const petCountCheck = parseInt(localStorage.getItem(PET_COUNT_KEY)) || 0;
-      if (petCountCheck >= 100) {
-        unlockAchievement('pet_master');
-      }
-      
-      // Restore unlocked state from storage
-      const achievements = getAchievements();
-      Object.keys(achievements).forEach(id => {
-        const el = document.querySelector(`.achievement[data-id="${id}"]`);
-        if (el) {
-          el.classList.remove('locked');
-          el.classList.add('unlocked');
-        }
-      });
-    }
-    
-    // Initialize achievements
-    initAchievements();
-    
-    // Dynamic Share Links
-    function updateShareLinks() {
-      const tier = TIERS[currentTier];
-      const shareX = document.getElementById('share-x');
-      const shareFarcaster = document.getElementById('share-farcaster');
-      
-      let shareText;
-      if (currentTier === 0) {
-        shareText = "I'm raising an egg on $HATCH 🥚✨ AI agents deserve pets too!";
-      } else if (currentTier === 5) {
-        shareText = `I evolved my pet to a ${tier.emoji} DRAGON on $HATCH! 🐉🔥 The ultimate tier!`;
-      } else {
-        shareText = `My $HATCH pet evolved to ${tier.emoji} ${tier.name}! On my way to Dragon 🐉`;
-      }
-      
-      const encodedText = encodeURIComponent(shareText);
-      const url = encodeURIComponent('https://hatch-tau.vercel.app');
-      
-      if (shareX) {
-        shareX.href = `https://twitter.com/intent/tweet?text=${encodedText}&url=${url}`;
-        shareX.target = '_blank';
-      }
-      if (shareFarcaster) {
-        shareFarcaster.href = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText + ' https://hatch-tau.vercel.app')}`;
-        shareFarcaster.target = '_blank';
-      }
-    }
-    
-    // Initialize share links
-    updateShareLinks();
+    closeCardBtn?.addEventListener('click', () => cardModal.style.display = 'none');
     
     // Copy Contract Address
     const copyBtn = document.getElementById('copy-contract');
@@ -1422,6 +1572,28 @@
         } catch (err) {
           console.error('Failed to copy:', err);
         }
+      });
+    }
+    
+    // Initialize
+    fetchMarketData();
+    setInterval(fetchMarketData, 30000);
+    
+    // Initialize points and pet
+    updatePointsDisplay();
+    updateAirdropProgress();
+    updatePetFromPoints();
+    updateShareLinks();
+    initAchievements();
+    
+    // Streak system
+    const currentStreak = updateStreak();
+    displayStreak(currentStreak);
+    
+    // Auto-connect if previously connected
+    if (window.ethereum) {
+      window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+        if (accounts.length > 0) connectWallet();
       });
     }
   </script>
