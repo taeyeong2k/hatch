@@ -446,6 +446,46 @@
     
     .share-btn:hover { transform: translateY(-2px); }
     
+    /* Contract Info */
+    .contract-info {
+      margin-top: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+    }
+    
+    .contract-label {
+      color: #666;
+    }
+    
+    .contract-address {
+      color: #a8dadc;
+      background: rgba(255,255,255,0.05);
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+    
+    .copy-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0.2rem;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    
+    .copy-btn:hover {
+      opacity: 1;
+    }
+    
+    .copy-btn.copied {
+      opacity: 1;
+    }
+    
     .links {
       margin-top: 1.5rem;
       display: flex;
@@ -679,6 +719,13 @@
     <div class="share-buttons">
       <a href="#" id="share-x" class="share-btn">Share on X</a>
       <a href="#" id="share-farcaster" class="share-btn farcaster">Share on Farcaster</a>
+    </div>
+    
+    <!-- Contract -->
+    <div class="contract-info">
+      <span class="contract-label">Contract:</span>
+      <code class="contract-address" id="contract-address">0x6C4e...8C12</code>
+      <button class="copy-btn" id="copy-contract" title="Copy full address">📋</button>
     </div>
     
     <!-- Links -->
@@ -1339,6 +1386,24 @@
     
     // Initialize share links
     updateShareLinks();
+    
+    // Copy Contract Address
+    const copyBtn = document.getElementById('copy-contract');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(HATCH_ADDRESS);
+          copyBtn.textContent = '✓';
+          copyBtn.classList.add('copied');
+          setTimeout(() => {
+            copyBtn.textContent = '📋';
+            copyBtn.classList.remove('copied');
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy:', err);
+        }
+      });
+    }
   </script>
 </body>
 </html>
