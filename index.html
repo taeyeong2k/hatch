@@ -80,6 +80,13 @@
     .stat-value.negative { color: #ff6b6b; }
     .stat-value.loading { color: #666; }
     
+    .last-updated {
+      color: #555;
+      font-size: 0.65rem;
+      margin-top: 0.25rem;
+      font-style: italic;
+    }
+    
     /* Pet Display */
     .pet-container {
       position: relative;
@@ -587,6 +594,7 @@
         <div class="stat-value loading" id="volume">...</div>
       </div>
     </div>
+    <p class="last-updated" id="last-updated"></p>
     
     <!-- Pet Display -->
     <div class="pet-container" id="pet-container">
@@ -863,6 +871,12 @@
           
           document.getElementById('volume').textContent = formatUSD(pair.volume?.h24 || 0);
           document.getElementById('volume').classList.remove('loading');
+          
+          // Update timestamp
+          const lastUpdated = document.getElementById('last-updated');
+          if (lastUpdated) {
+            lastUpdated.textContent = 'Updated ' + new Date().toLocaleTimeString();
+          }
         }
       } catch (err) {
         console.error('Failed to fetch market data:', err);
