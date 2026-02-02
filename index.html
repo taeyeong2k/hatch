@@ -156,6 +156,17 @@
       font-size: 0.95rem;
     }
     
+    .pet-counter {
+      color: #666;
+      font-size: 0.75rem;
+      margin-top: -0.5rem;
+    }
+    
+    .pet-counter #pet-count {
+      color: #ff6b6b;
+      font-weight: bold;
+    }
+    
     /* Wallet Status */
     .wallet-status {
       background: rgba(255,255,255,0.08);
@@ -549,6 +560,7 @@
     </div>
     
     <p class="message" id="message">Click your pet to interact...</p>
+    <p class="pet-counter" id="pet-counter">Pets: <span id="pet-count">0</span> 💕</p>
     
     <!-- Wallet Status -->
     <div class="wallet-status">
@@ -606,6 +618,10 @@
         <span class="achievement-icon">🐉</span>
         <span class="achievement-name">Legendary</span>
       </div>
+      <div class="achievement locked" data-id="pet_master" title="Pet your pet 100 times">
+        <span class="achievement-icon">👆</span>
+        <span class="achievement-name">Pet Master</span>
+      </div>
     </div>
     
     <!-- Tier Gallery -->
@@ -661,8 +677,8 @@
     
     <!-- Share -->
     <div class="share-buttons">
-      <a href="https://twitter.com/intent/tweet?text=I%20just%20hatched%20a%20pet%20on%20%24HATCH%20%F0%9F%A5%9A%F0%9F%90%A3&url=https://hatch-tau.vercel.app" target="_blank" class="share-btn">Share on X</a>
-      <a href="https://warpcast.com/~/compose?text=I%20just%20hatched%20a%20pet%20on%20%24HATCH%20%F0%9F%A5%9A%F0%9F%90%A3%20https://hatch-tau.vercel.app" target="_blank" class="share-btn farcaster">Share on Farcaster</a>
+      <a href="#" id="share-x" class="share-btn">Share on X</a>
+      <a href="#" id="share-farcaster" class="share-btn farcaster">Share on Farcaster</a>
     </div>
     
     <!-- Links -->
@@ -849,20 +865,50 @@
       return msgs[Math.floor(Math.random() * msgs.length)];
     }
     
+    // Pet Click Counter
+    const PET_COUNT_KEY = 'hatch_pet_count';
+    let petCount = parseInt(localStorage.getItem(PET_COUNT_KEY)) || 0;
+    const petCountDisplay = document.getElementById('pet-count');
+    if (petCountDisplay) petCountDisplay.textContent = petCount;
+    
+    function incrementPetCount() {
+      petCount++;
+      localStorage.setItem(PET_COUNT_KEY, petCount.toString());
+      if (petCountDisplay) petCountDisplay.textContent = petCount;
+      
+      // Milestone messages and achievements
+      if (petCount === 100) {
+        message.textContent = "100 pets! Your pet loves you so much! 💕";
+        unlockAchievement('pet_master');
+        return true;
+      } else if (petCount === 500) {
+        message.textContent = "500 pets! You're the best pet parent ever! 🏆";
+        return true;
+      } else if (petCount === 1000) {
+        message.textContent = "1000 PETS! LEGENDARY DEDICATION! 👑";
+        return true;
+      }
+      return false;
+    }
+    
     // Pet Interaction
     petContainer.addEventListener('click', () => {
       pet.classList.add('wiggle');
-      // 20% chance to show streak message if streak > 2
-      const streak = parseInt(localStorage.getItem(STREAK_KEY)) || 0;
-      if (streak > 2 && Math.random() < 0.2) {
-        const streakMsg = getStreakMessage(streak, currentTier);
-        if (streakMsg) {
-          message.textContent = streakMsg;
+      
+      // Check for milestone message first
+      if (!incrementPetCount()) {
+        // 20% chance to show streak message if streak > 2
+        const streak = parseInt(localStorage.getItem(STREAK_KEY)) || 0;
+        if (streak > 2 && Math.random() < 0.2) {
+          const streakMsg = getStreakMessage(streak, currentTier);
+          if (streakMsg) {
+            message.textContent = streakMsg;
+          } else {
+            message.textContent = getMessageForTier(currentTier);
+          }
         } else {
           message.textContent = getMessageForTier(currentTier);
         }
-      } else {
-        message.textContent = getMessageForTier(currentTier);
       }
       setTimeout(() => pet.classList.remove('wiggle'), 500);
     });
@@ -924,6 +970,7 @@
         balance.textContent = formatBalance(currentBalance);
         walletAddress.textContent = address.slice(0, 6) + '...' + address.slice(-4);
         updatePet(tierIndex);
+        updateShareLinks();
         
         connectBtn.textContent = 'Connected ✓';
         connectBtn.classList.add('connected');
@@ -1242,6 +1289,12 @@
         unlockAchievement('dedicated');
       }
       
+      // Check pet count achievement
+      const petCountCheck = parseInt(localStorage.getItem(PET_COUNT_KEY)) || 0;
+      if (petCountCheck >= 100) {
+        unlockAchievement('pet_master');
+      }
+      
       // Restore unlocked state from storage
       const achievements = getAchievements();
       Object.keys(achievements).forEach(id => {
@@ -1255,6 +1308,37 @@
     
     // Initialize achievements
     initAchievements();
+    
+    // Dynamic Share Links
+    function updateShareLinks() {
+      const tier = TIERS[currentTier];
+      const shareX = document.getElementById('share-x');
+      const shareFarcaster = document.getElementById('share-farcaster');
+      
+      let shareText;
+      if (currentTier === 0) {
+        shareText = "I'm raising an egg on $HATCH 🥚✨ AI agents deserve pets too!";
+      } else if (currentTier === 5) {
+        shareText = `I evolved my pet to a ${tier.emoji} DRAGON on $HATCH! 🐉🔥 The ultimate tier!`;
+      } else {
+        shareText = `My $HATCH pet evolved to ${tier.emoji} ${tier.name}! On my way to Dragon 🐉`;
+      }
+      
+      const encodedText = encodeURIComponent(shareText);
+      const url = encodeURIComponent('https://hatch-tau.vercel.app');
+      
+      if (shareX) {
+        shareX.href = `https://twitter.com/intent/tweet?text=${encodedText}&url=${url}`;
+        shareX.target = '_blank';
+      }
+      if (shareFarcaster) {
+        shareFarcaster.href = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText + ' https://hatch-tau.vercel.app')}`;
+        shareFarcaster.target = '_blank';
+      }
+    }
+    
+    // Initialize share links
+    updateShareLinks();
   </script>
 </body>
 </html>
