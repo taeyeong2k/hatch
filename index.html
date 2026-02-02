@@ -243,6 +243,62 @@
       color: #888;
     }
     
+    /* Achievements */
+    .achievements {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      max-width: 450px;
+      margin: 0 auto 1.5rem;
+    }
+    
+    .achievement {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      text-align: center;
+      transition: all 0.3s;
+      cursor: help;
+    }
+    
+    .achievement.locked {
+      opacity: 0.4;
+      filter: grayscale(100%);
+    }
+    
+    .achievement.unlocked {
+      border-color: #ffd93d;
+      background: rgba(255, 217, 61, 0.1);
+    }
+    
+    .achievement.unlocked .achievement-icon {
+      animation: achievementPop 0.5s ease-out;
+    }
+    
+    @keyframes achievementPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    
+    .achievement-icon {
+      font-size: 1.2rem;
+      display: block;
+    }
+    
+    .achievement-name {
+      font-size: 0.6rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .achievement.unlocked .achievement-name {
+      color: #ffd93d;
+    }
+    
     /* Buttons */
     .cta {
       margin-top: 1.5rem;
@@ -521,6 +577,35 @@
     <div class="cta">
       <button class="btn" id="connect-btn">Connect Wallet</button>
       <a href="https://clanker.world/clanker/0x6C4e4E072fE52bd862518967BBDa6eF4b3998C12" target="_blank" class="btn btn-secondary">Buy $HATCH</a>
+    </div>
+    
+    <!-- Achievements -->
+    <h3 class="section-title">Achievements</h3>
+    <div class="achievements" id="achievements">
+      <div class="achievement unlocked" data-id="first_visit" title="Welcome to HATCH!">
+        <span class="achievement-icon">🎉</span>
+        <span class="achievement-name">First Visit</span>
+      </div>
+      <div class="achievement locked" data-id="connected" title="Connect your wallet">
+        <span class="achievement-icon">🔗</span>
+        <span class="achievement-name">Connected</span>
+      </div>
+      <div class="achievement locked" data-id="pet_parent" title="Own any HATCH tokens">
+        <span class="achievement-icon">💛</span>
+        <span class="achievement-name">Pet Parent</span>
+      </div>
+      <div class="achievement locked" data-id="dedicated" title="7+ day visit streak">
+        <span class="achievement-icon">🔥</span>
+        <span class="achievement-name">Dedicated</span>
+      </div>
+      <div class="achievement locked" data-id="chick" title="Reach Chick tier (1K)">
+        <span class="achievement-icon">🐣</span>
+        <span class="achievement-name">Hatched!</span>
+      </div>
+      <div class="achievement locked" data-id="dragon" title="Reach Dragon tier (10M)">
+        <span class="achievement-icon">🐉</span>
+        <span class="achievement-name">Legendary</span>
+      </div>
     </div>
     
     <!-- Tier Gallery -->
@@ -843,6 +928,10 @@
         connectBtn.textContent = 'Connected ✓';
         connectBtn.classList.add('connected');
         
+        // Check achievements
+        const streak = parseInt(localStorage.getItem('hatch_streak')) || 0;
+        checkAchievements(tierIndex, currentBalance, streak);
+        
         if (currentBalance === 0) {
           message.textContent = "You don't have any $HATCH yet. Buy some to hatch a pet!";
         } else {
@@ -1091,6 +1180,81 @@
     if (currentStreak > 1) {
       displayStreak(currentStreak);
     }
+    
+    // Achievement System
+    const ACHIEVEMENTS_KEY = 'hatch_achievements';
+    
+    function getAchievements() {
+      try {
+        return JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY)) || {};
+      } catch {
+        return {};
+      }
+    }
+    
+    function saveAchievements(achievements) {
+      localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(achievements));
+    }
+    
+    function unlockAchievement(id) {
+      const achievements = getAchievements();
+      if (achievements[id]) return false; // Already unlocked
+      
+      achievements[id] = { unlockedAt: Date.now() };
+      saveAchievements(achievements);
+      
+      // Update UI
+      const el = document.querySelector(`.achievement[data-id="${id}"]`);
+      if (el) {
+        el.classList.remove('locked');
+        el.classList.add('unlocked');
+      }
+      
+      return true; // Newly unlocked
+    }
+    
+    function checkAchievements(tierIndex, balance, streak) {
+      // Connected wallet
+      unlockAchievement('connected');
+      
+      // Pet Parent (any balance)
+      if (balance > 0) {
+        unlockAchievement('pet_parent');
+      }
+      
+      // Dedicated (7+ day streak)
+      if (streak >= 7) {
+        unlockAchievement('dedicated');
+      }
+      
+      // Tier achievements
+      if (tierIndex >= 1) unlockAchievement('chick');
+      if (tierIndex >= 5) unlockAchievement('dragon');
+    }
+    
+    function initAchievements() {
+      // Mark first visit
+      unlockAchievement('first_visit');
+      
+      // Check streak achievement
+      const streak = parseInt(localStorage.getItem(STREAK_KEY)) || 0;
+      if (streak >= 7) {
+        unlockAchievement('dedicated');
+      }
+      
+      // Restore unlocked state from storage
+      const achievements = getAchievements();
+      Object.keys(achievements).forEach(id => {
+        const el = document.querySelector(`.achievement[data-id="${id}"]`);
+        if (el) {
+          el.classList.remove('locked');
+          el.classList.add('unlocked');
+        }
+      });
+    }
+    
+    // Initialize achievements
+    initAchievements();
   </script>
 </body>
 </html>
